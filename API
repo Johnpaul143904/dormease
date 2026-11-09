@@ -1,0 +1,83 @@
+API base URL: http://localhost:3001/api
+Frontend URL: http://localhost:3000
+The frontend NUXT_PUBLIC_API_BASE_URL overrides the API base URL.
+NestJS global prefix: /api
+
+Authentication
+POST /api/auth/login
+POST /api/auth/register
+POST /api/auth/logout
+GET /api/auth/profile
+PATCH /api/auth/profile
+
+Dashboard (admin/staff)
+GET /api/dashboard/summary
+
+Rooms (admin/staff)
+GET /api/rooms
+GET /api/rooms/:id
+POST /api/rooms
+PATCH /api/rooms/:id
+DELETE /api/rooms/:id
+
+Tenants (admin/staff; tenant self-service marked separately)
+GET /api/tenants
+GET /api/tenants/:id
+POST /api/tenants
+PATCH /api/tenants/:id
+DELETE /api/tenants/:id
+GET /api/tenants/me (tenant)
+
+Assignments (admin/staff)
+GET /api/assignments
+POST /api/assignments
+PATCH /api/assignments/:id/terminate
+
+Invitations
+Admin UI route /invitations calls backend API /api/room-invitations.
+GET /api/room-invitations (admin/staff)
+POST /api/room-invitations (admin/staff)
+GET /api/room-invitations/:code (public, read-only status lookup; returns only invitation and room display details)
+POST /api/room-invitations/:code/accept (tenant)
+POST /api/room-invitations/:code/reject (tenant)
+POST /api/room-invitations/:id/revoke (admin/staff)
+
+Payments
+GET /api/payments (admin/staff)
+POST /api/payments (admin/staff; creates an unpaid bill)
+PATCH /api/payments/:id (admin/staff; edits bill details, payment status is controlled by proof verification)
+GET /api/payments/me (tenant)
+GET /api/payments/submissions (admin/staff; verification queue with tenant, payment, and audit details)
+POST /api/payments/:paymentId/submissions (tenant; multipart fields amount, paymentMethod, paymentDate, referenceNumber, and proof; JPG/JPEG, PNG, WEBP, or PDF up to 5 MB)
+GET /api/payments/submissions/:submissionId/proof (tenant owner or admin/staff; authenticated receipt download/preview)
+PATCH /api/payments/submissions/:submissionId/verify (admin/staff; status APPROVED or REJECTED, with remarks required for rejection)
+
+Payment submissions remain pending until an authorized reviewer acts. Approval updates the verified amount and payment status; rejection preserves history and allows a new submission. Receipt bytes are stored in PostgreSQL and are never included in list responses.
+
+Maintenance
+GET /api/maintenance (admin/staff)
+POST /api/maintenance (admin/staff)
+GET /api/maintenance/me (tenant; only the authenticated tenant's private requests)
+POST /api/maintenance/me (tenant; creates a private PENDING request for the active room)
+GET /api/maintenance/public (authenticated tenants; approved announcements only, without tenant or room identifiers)
+PATCH /api/maintenance/:id/approve (admin/staff; approves and publishes safe announcement fields)
+PATCH /api/maintenance/:id/reject (admin/staff; rejects privately)
+PATCH /api/maintenance/:id (admin/staff; updates approved announcement text/location or progress status)
+Maintenance statuses: PENDING, APPROVED, REJECTED, IN_PROGRESS, RESOLVED (displayed as Completed), CANCELLED.
+Approval status changes are stored in MaintenanceStatusHistory.
+
+Notifications
+No notification routes are implemented yet.
+
+Tenant creation requires fullName, email, and a password of at least 8 characters.
+Tenant deletion permanently removes the account and its linked assignments,
+payments, maintenance requests, and room invitations. Payment records can be
+printed from a payment's Details dialog.
+
+Mga kulang pa:
+
+1. Pag-usab o pag-reset sa password.
+2. Notifications para sa payments, maintenance requests, ug room invitations.
+3. Dugang staff dashboard ug role/permission checks.
+4. Integration tests para sa login, invitations, payments, ug maintenance.
+5. account CRUD

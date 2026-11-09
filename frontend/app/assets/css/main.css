@@ -1,0 +1,125 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f8fafc;
+  color: #1e293b;
+}
+
+.admin-sidebar {
+  position: fixed !important;
+  z-index: 9999 !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  display: flex !important;
+  width: 15rem !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  flex-direction: column !important;
+  background: #1e3a8a !important;
+  color: #ffffff !important;
+}
+
+.admin-sidebar-overlay {
+  display: none;
+}
+
+.admin-menu-button {
+  display: none;
+}
+
+.admin-content {
+  min-height: 100vh;
+  padding-left: 15rem !important;
+}
+
+.admin-sidebar a {
+  color: rgba(219, 234, 254, 0.8);
+  text-decoration: none;
+}
+
+.admin-sidebar nav {
+  display: block;
+  padding: 0 0.75rem;
+}
+
+.admin-sidebar nav a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+  margin: 0.25rem 0;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.admin-sidebar nav a:hover,
+.admin-sidebar nav a.router-link-active {
+  background: #ffffff;
+  color: #1e3a8a;
+}
+
+.tenant-sidebar {
+  position: fixed !important;
+  z-index: 9999 !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  display: flex !important;
+  width: 15rem !important;
+  flex-direction: column !important;
+  background: #1e3a8a !important;
+  color: #ffffff !important;
+}
+
+.tenant-content {
+  min-height: 100vh;
+  padding-left: 15rem !important;
+}
+
+.tenant-sidebar a {
+  color: rgba(219, 234, 254, 0.8);
+  text-decoration: none;
+}
+
+.tenant-sidebar nav {
+  display: block;
+  padding: 0 0.75rem;
+}
+
+.tenant-sidebar nav a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+  margin: 0.25rem 0;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.tenant-sidebar nav a:hover,
+.tenant-sidebar nav a.router-link-active {
+  background: #ffffff;
+  color: #1e3a8a;
+}
+
+@media (max-width: 1023px) {
+  .tenant-sidebar {
+    display: none !important;
+  }
+
+  .tenant-content {
+    padding-left: 0 !important;
+  }
+}
