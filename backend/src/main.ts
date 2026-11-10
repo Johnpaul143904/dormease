@@ -30,8 +30,9 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(3001);
-  console.log('DormEase API running at http://localhost:3001/api');
+  const port = Number(process.env.PORT) || 3001;
+  await app.listen(port, '0.0.0.0');
+  console.log(`DormEase API running on port ${port} at /api`);
 }
 
 bootstrap().catch((error: unknown) => {
