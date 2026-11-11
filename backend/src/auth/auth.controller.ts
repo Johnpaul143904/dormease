@@ -89,14 +89,24 @@ export class AuthController {
     return { user: session.user };
   }
 
-  private cookieOptions() {
+    private cookieOptions() {
     return {
       httpOnly: true,
-      secure: this.authService.isProduction(),
-      sameSite: this.authService.isProduction()
-        ? ('none' as const)
-        : ('lax' as const),
+      secure: true,
+      sameSite: 'none' as const,
       path: '/',
     };
   }
+
+
+  // private cookieOptions() {
+  //   return {
+  //     httpOnly: true,
+  //     secure: this.authService.isProduction(),
+  //     sameSite: this.authService.isProduction()
+  //       ? ('none' as const)
+  //       : ('lax' as const),
+  //     path: '/',
+  //   };
+  // }
 }
