@@ -500,10 +500,6 @@ export type RoomAssignmentUncheckedUpdateManyWithoutTenantNestedInput = {
   deleteMany?: Prisma.RoomAssignmentScalarWhereInput | Prisma.RoomAssignmentScalarWhereInput[]
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type EnumAssignmentStatusFieldUpdateOperationsInput = {
   set?: $Enums.AssignmentStatus
 }

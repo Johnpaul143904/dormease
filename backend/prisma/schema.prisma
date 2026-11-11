@@ -83,6 +83,21 @@ model User {
   maintenanceStatusChanges   MaintenanceStatusHistory[]   @relation("MaintenanceStatusActor")
   verifiedPaymentSubmissions PaymentSubmission[]          @relation("PaymentSubmissionVerifier")
   paymentVerificationActions PaymentVerificationHistory[] @relation("PaymentVerificationActor")
+  passwordResetTokens        PasswordResetToken[]
+}
+
+model PasswordResetToken {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, usedAt])
+  @@index([expiresAt])
 }
 
 model Room {

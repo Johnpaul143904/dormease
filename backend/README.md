@@ -42,10 +42,24 @@ authenticated account and do not accept a client-supplied tenant ID.
 | Maintenance | `GET/POST /maintenance`, `PATCH /maintenance/:id`                 | `GET/POST /maintenance/me`          |
 | Invitations | `GET/POST /room-invitations`, `POST /room-invitations/:id/revoke` | Accept/reject an invitation by code |
 
-Set `DATABASE_URL` and `ADMIN_INVITATION_CODE` in the local backend `.env` file.
-Use the value already configured there when registering the first admin; do not
-commit or share it. Apply database migrations with
-`npx prisma migrate deploy --config prisma7.config.ts`.
+Set `DATABASE_URL`, `ADMIN_INVITATION_CODE`, `FRONTEND_URL`, `RESEND_API_KEY`,
+and `RESEND_FROM_EMAIL` in the backend environment. Locally, set
+`FRONTEND_URL=http://localhost:3000`; in production, use the HTTPS URL of the
+deployed frontend. The Resend sender must be permitted for your Resend account.
+Use the configured `ADMIN_INVITATION_CODE` when registering the first admin; do
+not commit or share credentials.
+
+Apply the additive password-reset migration without resetting the database:
+
+```bash
+npx prisma migrate deploy --config prisma7.config.ts
+npx prisma generate --config prisma7.config.ts
+```
+
+Password recovery is available through `POST /api/auth/forgot-password` and
+`POST /api/auth/reset-password`. Reset links are single-use and expire after 20
+minutes. Recovery requests are limited to five per IP per 15 minutes; reset
+attempts are limited to ten per IP per 15 minutes.
 
 ## Project setup
 

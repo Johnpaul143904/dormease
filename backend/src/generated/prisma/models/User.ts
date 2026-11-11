@@ -237,6 +237,7 @@ export type UserWhereInput = {
   maintenanceStatusChanges?: Prisma.MaintenanceStatusHistoryListRelationFilter
   verifiedPaymentSubmissions?: Prisma.PaymentSubmissionListRelationFilter
   paymentVerificationActions?: Prisma.PaymentVerificationHistoryListRelationFilter
+  passwordResetTokens?: Prisma.PasswordResetTokenListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -252,6 +253,7 @@ export type UserOrderByWithRelationInput = {
   maintenanceStatusChanges?: Prisma.MaintenanceStatusHistoryOrderByRelationAggregateInput
   verifiedPaymentSubmissions?: Prisma.PaymentSubmissionOrderByRelationAggregateInput
   paymentVerificationActions?: Prisma.PaymentVerificationHistoryOrderByRelationAggregateInput
+  passwordResetTokens?: Prisma.PasswordResetTokenOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -270,6 +272,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   maintenanceStatusChanges?: Prisma.MaintenanceStatusHistoryListRelationFilter
   verifiedPaymentSubmissions?: Prisma.PaymentSubmissionListRelationFilter
   paymentVerificationActions?: Prisma.PaymentVerificationHistoryListRelationFilter
+  passwordResetTokens?: Prisma.PasswordResetTokenListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -312,6 +315,7 @@ export type UserCreateInput = {
   maintenanceStatusChanges?: Prisma.MaintenanceStatusHistoryCreateNestedManyWithoutChangedByInput
   verifiedPaymentSubmissions?: Prisma.PaymentSubmissionCreateNestedManyWithoutVerifiedByInput
   paymentVerificationActions?: Prisma.PaymentVerificationHistoryCreateNestedManyWithoutChangedByInput
+  passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -327,6 +331,7 @@ export type UserUncheckedCreateInput = {
   maintenanceStatusChanges?: Prisma.MaintenanceStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   verifiedPaymentSubmissions?: Prisma.PaymentSubmissionUncheckedCreateNestedManyWithoutVerifiedByInput
   paymentVerificationActions?: Prisma.PaymentVerificationHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -341,6 +346,7 @@ export type UserUpdateInput = {
   maintenanceStatusChanges?: Prisma.MaintenanceStatusHistoryUpdateManyWithoutChangedByNestedInput
   verifiedPaymentSubmissions?: Prisma.PaymentSubmissionUpdateManyWithoutVerifiedByNestedInput
   paymentVerificationActions?: Prisma.PaymentVerificationHistoryUpdateManyWithoutChangedByNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -356,6 +362,7 @@ export type UserUncheckedUpdateInput = {
   maintenanceStatusChanges?: Prisma.MaintenanceStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   verifiedPaymentSubmissions?: Prisma.PaymentSubmissionUncheckedUpdateManyWithoutVerifiedByNestedInput
   paymentVerificationActions?: Prisma.PaymentVerificationHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -455,6 +462,20 @@ export type IntFieldUpdateOperationsInput = {
   divide?: number
 }
 
+export type UserCreateNestedOneWithoutPasswordResetTokensInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPasswordResetTokensInput, Prisma.UserUncheckedCreateWithoutPasswordResetTokensInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPasswordResetTokensInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutPasswordResetTokensNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPasswordResetTokensInput, Prisma.UserUncheckedCreateWithoutPasswordResetTokensInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPasswordResetTokensInput
+  upsert?: Prisma.UserUpsertWithoutPasswordResetTokensInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPasswordResetTokensInput, Prisma.UserUpdateWithoutPasswordResetTokensInput>, Prisma.UserUncheckedUpdateWithoutPasswordResetTokensInput>
+}
+
 export type UserCreateNestedOneWithoutTenantInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutTenantInput, Prisma.UserUncheckedCreateWithoutTenantInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutTenantInput
@@ -533,6 +554,80 @@ export type UserUpdateOneWithoutMaintenanceStatusChangesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutMaintenanceStatusChangesInput, Prisma.UserUpdateWithoutMaintenanceStatusChangesInput>, Prisma.UserUncheckedUpdateWithoutMaintenanceStatusChangesInput>
 }
 
+export type UserCreateWithoutPasswordResetTokensInput = {
+  fullName: string
+  email: string
+  password: string
+  role?: $Enums.UserRole
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  tenant?: Prisma.TenantCreateNestedOneWithoutUserInput
+  assignedRepairs?: Prisma.MaintenanceRequestCreateNestedManyWithoutAssignedStaffInput
+  maintenanceStatusChanges?: Prisma.MaintenanceStatusHistoryCreateNestedManyWithoutChangedByInput
+  verifiedPaymentSubmissions?: Prisma.PaymentSubmissionCreateNestedManyWithoutVerifiedByInput
+  paymentVerificationActions?: Prisma.PaymentVerificationHistoryCreateNestedManyWithoutChangedByInput
+}
+
+export type UserUncheckedCreateWithoutPasswordResetTokensInput = {
+  id?: number
+  fullName: string
+  email: string
+  password: string
+  role?: $Enums.UserRole
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  tenant?: Prisma.TenantUncheckedCreateNestedOneWithoutUserInput
+  assignedRepairs?: Prisma.MaintenanceRequestUncheckedCreateNestedManyWithoutAssignedStaffInput
+  maintenanceStatusChanges?: Prisma.MaintenanceStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  verifiedPaymentSubmissions?: Prisma.PaymentSubmissionUncheckedCreateNestedManyWithoutVerifiedByInput
+  paymentVerificationActions?: Prisma.PaymentVerificationHistoryUncheckedCreateNestedManyWithoutChangedByInput
+}
+
+export type UserCreateOrConnectWithoutPasswordResetTokensInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutPasswordResetTokensInput, Prisma.UserUncheckedCreateWithoutPasswordResetTokensInput>
+}
+
+export type UserUpsertWithoutPasswordResetTokensInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutPasswordResetTokensInput, Prisma.UserUncheckedUpdateWithoutPasswordResetTokensInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutPasswordResetTokensInput, Prisma.UserUncheckedCreateWithoutPasswordResetTokensInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutPasswordResetTokensInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutPasswordResetTokensInput, Prisma.UserUncheckedUpdateWithoutPasswordResetTokensInput>
+}
+
+export type UserUpdateWithoutPasswordResetTokensInput = {
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tenant?: Prisma.TenantUpdateOneWithoutUserNestedInput
+  assignedRepairs?: Prisma.MaintenanceRequestUpdateManyWithoutAssignedStaffNestedInput
+  maintenanceStatusChanges?: Prisma.MaintenanceStatusHistoryUpdateManyWithoutChangedByNestedInput
+  verifiedPaymentSubmissions?: Prisma.PaymentSubmissionUpdateManyWithoutVerifiedByNestedInput
+  paymentVerificationActions?: Prisma.PaymentVerificationHistoryUpdateManyWithoutChangedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutPasswordResetTokensInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tenant?: Prisma.TenantUncheckedUpdateOneWithoutUserNestedInput
+  assignedRepairs?: Prisma.MaintenanceRequestUncheckedUpdateManyWithoutAssignedStaffNestedInput
+  maintenanceStatusChanges?: Prisma.MaintenanceStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  verifiedPaymentSubmissions?: Prisma.PaymentSubmissionUncheckedUpdateManyWithoutVerifiedByNestedInput
+  paymentVerificationActions?: Prisma.PaymentVerificationHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+}
+
 export type UserCreateWithoutTenantInput = {
   fullName: string
   email: string
@@ -544,6 +639,7 @@ export type UserCreateWithoutTenantInput = {
   maintenanceStatusChanges?: Prisma.MaintenanceStatusHistoryCreateNestedManyWithoutChangedByInput
   verifiedPaymentSubmissions?: Prisma.PaymentSubmissionCreateNestedManyWithoutVerifiedByInput
   paymentVerificationActions?: Prisma.PaymentVerificationHistoryCreateNestedManyWithoutChangedByInput
+  passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTenantInput = {
@@ -558,6 +654,7 @@ export type UserUncheckedCreateWithoutTenantInput = {
   maintenanceStatusChanges?: Prisma.MaintenanceStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   verifiedPaymentSubmissions?: Prisma.PaymentSubmissionUncheckedCreateNestedManyWithoutVerifiedByInput
   paymentVerificationActions?: Prisma.PaymentVerificationHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTenantInput = {
@@ -587,6 +684,7 @@ export type UserUpdateWithoutTenantInput = {
   maintenanceStatusChanges?: Prisma.MaintenanceStatusHistoryUpdateManyWithoutChangedByNestedInput
   verifiedPaymentSubmissions?: Prisma.PaymentSubmissionUpdateManyWithoutVerifiedByNestedInput
   paymentVerificationActions?: Prisma.PaymentVerificationHistoryUpdateManyWithoutChangedByNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTenantInput = {
@@ -601,6 +699,7 @@ export type UserUncheckedUpdateWithoutTenantInput = {
   maintenanceStatusChanges?: Prisma.MaintenanceStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   verifiedPaymentSubmissions?: Prisma.PaymentSubmissionUncheckedUpdateManyWithoutVerifiedByNestedInput
   paymentVerificationActions?: Prisma.PaymentVerificationHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutVerifiedPaymentSubmissionsInput = {
@@ -614,6 +713,7 @@ export type UserCreateWithoutVerifiedPaymentSubmissionsInput = {
   assignedRepairs?: Prisma.MaintenanceRequestCreateNestedManyWithoutAssignedStaffInput
   maintenanceStatusChanges?: Prisma.MaintenanceStatusHistoryCreateNestedManyWithoutChangedByInput
   paymentVerificationActions?: Prisma.PaymentVerificationHistoryCreateNestedManyWithoutChangedByInput
+  passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutVerifiedPaymentSubmissionsInput = {
@@ -628,6 +728,7 @@ export type UserUncheckedCreateWithoutVerifiedPaymentSubmissionsInput = {
   assignedRepairs?: Prisma.MaintenanceRequestUncheckedCreateNestedManyWithoutAssignedStaffInput
   maintenanceStatusChanges?: Prisma.MaintenanceStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   paymentVerificationActions?: Prisma.PaymentVerificationHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutVerifiedPaymentSubmissionsInput = {
@@ -657,6 +758,7 @@ export type UserUpdateWithoutVerifiedPaymentSubmissionsInput = {
   assignedRepairs?: Prisma.MaintenanceRequestUpdateManyWithoutAssignedStaffNestedInput
   maintenanceStatusChanges?: Prisma.MaintenanceStatusHistoryUpdateManyWithoutChangedByNestedInput
   paymentVerificationActions?: Prisma.PaymentVerificationHistoryUpdateManyWithoutChangedByNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutVerifiedPaymentSubmissionsInput = {
@@ -671,6 +773,7 @@ export type UserUncheckedUpdateWithoutVerifiedPaymentSubmissionsInput = {
   assignedRepairs?: Prisma.MaintenanceRequestUncheckedUpdateManyWithoutAssignedStaffNestedInput
   maintenanceStatusChanges?: Prisma.MaintenanceStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   paymentVerificationActions?: Prisma.PaymentVerificationHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutPaymentVerificationActionsInput = {
@@ -684,6 +787,7 @@ export type UserCreateWithoutPaymentVerificationActionsInput = {
   assignedRepairs?: Prisma.MaintenanceRequestCreateNestedManyWithoutAssignedStaffInput
   maintenanceStatusChanges?: Prisma.MaintenanceStatusHistoryCreateNestedManyWithoutChangedByInput
   verifiedPaymentSubmissions?: Prisma.PaymentSubmissionCreateNestedManyWithoutVerifiedByInput
+  passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPaymentVerificationActionsInput = {
@@ -698,6 +802,7 @@ export type UserUncheckedCreateWithoutPaymentVerificationActionsInput = {
   assignedRepairs?: Prisma.MaintenanceRequestUncheckedCreateNestedManyWithoutAssignedStaffInput
   maintenanceStatusChanges?: Prisma.MaintenanceStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   verifiedPaymentSubmissions?: Prisma.PaymentSubmissionUncheckedCreateNestedManyWithoutVerifiedByInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPaymentVerificationActionsInput = {
@@ -727,6 +832,7 @@ export type UserUpdateWithoutPaymentVerificationActionsInput = {
   assignedRepairs?: Prisma.MaintenanceRequestUpdateManyWithoutAssignedStaffNestedInput
   maintenanceStatusChanges?: Prisma.MaintenanceStatusHistoryUpdateManyWithoutChangedByNestedInput
   verifiedPaymentSubmissions?: Prisma.PaymentSubmissionUpdateManyWithoutVerifiedByNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPaymentVerificationActionsInput = {
@@ -741,6 +847,7 @@ export type UserUncheckedUpdateWithoutPaymentVerificationActionsInput = {
   assignedRepairs?: Prisma.MaintenanceRequestUncheckedUpdateManyWithoutAssignedStaffNestedInput
   maintenanceStatusChanges?: Prisma.MaintenanceStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   verifiedPaymentSubmissions?: Prisma.PaymentSubmissionUncheckedUpdateManyWithoutVerifiedByNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAssignedRepairsInput = {
@@ -754,6 +861,7 @@ export type UserCreateWithoutAssignedRepairsInput = {
   maintenanceStatusChanges?: Prisma.MaintenanceStatusHistoryCreateNestedManyWithoutChangedByInput
   verifiedPaymentSubmissions?: Prisma.PaymentSubmissionCreateNestedManyWithoutVerifiedByInput
   paymentVerificationActions?: Prisma.PaymentVerificationHistoryCreateNestedManyWithoutChangedByInput
+  passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAssignedRepairsInput = {
@@ -768,6 +876,7 @@ export type UserUncheckedCreateWithoutAssignedRepairsInput = {
   maintenanceStatusChanges?: Prisma.MaintenanceStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   verifiedPaymentSubmissions?: Prisma.PaymentSubmissionUncheckedCreateNestedManyWithoutVerifiedByInput
   paymentVerificationActions?: Prisma.PaymentVerificationHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAssignedRepairsInput = {
@@ -797,6 +906,7 @@ export type UserUpdateWithoutAssignedRepairsInput = {
   maintenanceStatusChanges?: Prisma.MaintenanceStatusHistoryUpdateManyWithoutChangedByNestedInput
   verifiedPaymentSubmissions?: Prisma.PaymentSubmissionUpdateManyWithoutVerifiedByNestedInput
   paymentVerificationActions?: Prisma.PaymentVerificationHistoryUpdateManyWithoutChangedByNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAssignedRepairsInput = {
@@ -811,6 +921,7 @@ export type UserUncheckedUpdateWithoutAssignedRepairsInput = {
   maintenanceStatusChanges?: Prisma.MaintenanceStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   verifiedPaymentSubmissions?: Prisma.PaymentSubmissionUncheckedUpdateManyWithoutVerifiedByNestedInput
   paymentVerificationActions?: Prisma.PaymentVerificationHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutMaintenanceStatusChangesInput = {
@@ -824,6 +935,7 @@ export type UserCreateWithoutMaintenanceStatusChangesInput = {
   assignedRepairs?: Prisma.MaintenanceRequestCreateNestedManyWithoutAssignedStaffInput
   verifiedPaymentSubmissions?: Prisma.PaymentSubmissionCreateNestedManyWithoutVerifiedByInput
   paymentVerificationActions?: Prisma.PaymentVerificationHistoryCreateNestedManyWithoutChangedByInput
+  passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutMaintenanceStatusChangesInput = {
@@ -838,6 +950,7 @@ export type UserUncheckedCreateWithoutMaintenanceStatusChangesInput = {
   assignedRepairs?: Prisma.MaintenanceRequestUncheckedCreateNestedManyWithoutAssignedStaffInput
   verifiedPaymentSubmissions?: Prisma.PaymentSubmissionUncheckedCreateNestedManyWithoutVerifiedByInput
   paymentVerificationActions?: Prisma.PaymentVerificationHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutMaintenanceStatusChangesInput = {
@@ -867,6 +980,7 @@ export type UserUpdateWithoutMaintenanceStatusChangesInput = {
   assignedRepairs?: Prisma.MaintenanceRequestUpdateManyWithoutAssignedStaffNestedInput
   verifiedPaymentSubmissions?: Prisma.PaymentSubmissionUpdateManyWithoutVerifiedByNestedInput
   paymentVerificationActions?: Prisma.PaymentVerificationHistoryUpdateManyWithoutChangedByNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMaintenanceStatusChangesInput = {
@@ -881,6 +995,7 @@ export type UserUncheckedUpdateWithoutMaintenanceStatusChangesInput = {
   assignedRepairs?: Prisma.MaintenanceRequestUncheckedUpdateManyWithoutAssignedStaffNestedInput
   verifiedPaymentSubmissions?: Prisma.PaymentSubmissionUncheckedUpdateManyWithoutVerifiedByNestedInput
   paymentVerificationActions?: Prisma.PaymentVerificationHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -893,6 +1008,7 @@ export type UserCountOutputType = {
   maintenanceStatusChanges: number
   verifiedPaymentSubmissions: number
   paymentVerificationActions: number
+  passwordResetTokens: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -900,6 +1016,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   maintenanceStatusChanges?: boolean | UserCountOutputTypeCountMaintenanceStatusChangesArgs
   verifiedPaymentSubmissions?: boolean | UserCountOutputTypeCountVerifiedPaymentSubmissionsArgs
   paymentVerificationActions?: boolean | UserCountOutputTypeCountPaymentVerificationActionsArgs
+  passwordResetTokens?: boolean | UserCountOutputTypeCountPasswordResetTokensArgs
 }
 
 /**
@@ -940,6 +1057,13 @@ export type UserCountOutputTypeCountPaymentVerificationActionsArgs<ExtArgs exten
   where?: Prisma.PaymentVerificationHistoryWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountPasswordResetTokensArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PasswordResetTokenWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -954,6 +1078,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   maintenanceStatusChanges?: boolean | Prisma.User$maintenanceStatusChangesArgs<ExtArgs>
   verifiedPaymentSubmissions?: boolean | Prisma.User$verifiedPaymentSubmissionsArgs<ExtArgs>
   paymentVerificationActions?: boolean | Prisma.User$paymentVerificationActionsArgs<ExtArgs>
+  passwordResetTokens?: boolean | Prisma.User$passwordResetTokensArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -994,6 +1119,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   maintenanceStatusChanges?: boolean | Prisma.User$maintenanceStatusChangesArgs<ExtArgs>
   verifiedPaymentSubmissions?: boolean | Prisma.User$verifiedPaymentSubmissionsArgs<ExtArgs>
   paymentVerificationActions?: boolean | Prisma.User$paymentVerificationActionsArgs<ExtArgs>
+  passwordResetTokens?: boolean | Prisma.User$passwordResetTokensArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1007,6 +1133,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     maintenanceStatusChanges: Prisma.$MaintenanceStatusHistoryPayload<ExtArgs>[]
     verifiedPaymentSubmissions: Prisma.$PaymentSubmissionPayload<ExtArgs>[]
     paymentVerificationActions: Prisma.$PaymentVerificationHistoryPayload<ExtArgs>[]
+    passwordResetTokens: Prisma.$PasswordResetTokenPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1415,6 +1542,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   maintenanceStatusChanges<T extends Prisma.User$maintenanceStatusChangesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$maintenanceStatusChangesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MaintenanceStatusHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   verifiedPaymentSubmissions<T extends Prisma.User$verifiedPaymentSubmissionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$verifiedPaymentSubmissionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentSubmissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   paymentVerificationActions<T extends Prisma.User$paymentVerificationActionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$paymentVerificationActionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentVerificationHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  passwordResetTokens<T extends Prisma.User$passwordResetTokensArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$passwordResetTokensArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PasswordResetTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1956,6 +2084,30 @@ export type User$paymentVerificationActionsArgs<ExtArgs extends runtime.Types.Ex
   take?: number
   skip?: number
   distinct?: Prisma.PaymentVerificationHistoryScalarFieldEnum | Prisma.PaymentVerificationHistoryScalarFieldEnum[]
+}
+
+/**
+ * User.passwordResetTokens
+ */
+export type User$passwordResetTokensArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PasswordResetToken
+   */
+  select?: Prisma.PasswordResetTokenSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PasswordResetToken
+   */
+  omit?: Prisma.PasswordResetTokenOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PasswordResetTokenInclude<ExtArgs> | null
+  where?: Prisma.PasswordResetTokenWhereInput
+  orderBy?: Prisma.PasswordResetTokenOrderByWithRelationInput | Prisma.PasswordResetTokenOrderByWithRelationInput[]
+  cursor?: Prisma.PasswordResetTokenWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PasswordResetTokenScalarFieldEnum | Prisma.PasswordResetTokenScalarFieldEnum[]
 }
 
 /**

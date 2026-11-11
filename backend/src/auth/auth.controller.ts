@@ -1,8 +1,20 @@
-import { Body, Controller, Get, Patch, Post, Req, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Patch,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import type { Response } from 'express';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { Public } from './public.decorator';
 
@@ -28,6 +40,22 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ) {
     return this.setSessionCookie(response, await this.authService.login(dto));
+  }
+
+  @Post('forgot-password')
+  @Public()
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 5, ttl: 15 * 60 * 1000 } })
+  forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto);
+  }
+
+  @Post('reset-password')
+  @Public()
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 10, ttl: 15 * 60 * 1000 } })
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto);
   }
 
   @Get('profile')
@@ -65,7 +93,9 @@ export class AuthController {
     return {
       httpOnly: true,
       secure: this.authService.isProduction(),
-      sameSite: this.authService.isProduction() ? ('none' as const) : ('lax' as const),
+      sameSite: this.authService.isProduction()
+        ? ('none' as const)
+        : ('lax' as const),
       path: '/',
     };
   }
