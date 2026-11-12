@@ -32,6 +32,7 @@ describe('AuthController', () => {
   let controller: AuthController;
   const session = {
     accessToken: 'signed-test-token',
+    accessTokenExpiresAt: Date.now() + 15 * 60 * 1000,
     user: {
       id: 21,
       fullName: 'Dorm Admin',
@@ -42,6 +43,7 @@ describe('AuthController', () => {
   const authService = {
     isProduction: jest.fn().mockReturnValue(false),
     login: jest.fn().mockResolvedValue(session),
+    logout: jest.fn().mockResolvedValue({ success: true }),
     forgotPassword: jest
       .fn()
       .mockResolvedValue({ message: 'Generic password recovery message.' }),
@@ -85,7 +87,44 @@ describe('AuthController', () => {
     expect(response.cookie).toHaveBeenCalledWith(
       'dormease_access_token',
       session.accessToken,
-      expect.objectContaining({ httpOnly: true }),
+      expect.objectContaining({
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        maxAge: expect.any(Number),
+      }),
+    );
+  });
+
+  it('sets the secure cookie flag in production', async () => {
+    authService.isProduction.mockReturnValue(true);
+    const response = { cookie: jest.fn() };
+
+    await controller.login(
+      { email: 'user@example.com', password: 'password' },
+      response as unknown as Response,
+    );
+
+    expect(response.cookie).toHaveBeenCalledWith(
+      'dormease_access_token',
+      session.accessToken,
+      expect.objectContaining({ secure: true, sameSite: 'lax' }),
+    );
+  });
+
+  it('clears the session cookie with matching cookie attributes', async () => {
+    const response = { clearCookie: jest.fn() };
+
+    await controller.logout(response as unknown as Response);
+
+    expect(response.clearCookie).toHaveBeenCalledWith(
+      'dormease_access_token',
+      {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        path: '/',
+      },
     );
   });
 
@@ -135,6 +174,32 @@ describe('AuthController', () => {
       await request(app.getHttpServer())
         .post('/auth/forgot-password')
         .send({ email: 'user@example.com' })
+        .expect(429);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('limits login requests by client IP', async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [ThrottlerModule.forRoot([{ limit: 5, ttl: 60_000 }])],
+      controllers: [AuthController],
+      providers: [{ provide: AuthService, useValue: authService }],
+    }).compile();
+    const app: INestApplication = module.createNestApplication();
+    await app.init();
+
+    try {
+      for (let attempt = 0; attempt < 5; attempt += 1) {
+        await request(app.getHttpServer())
+          .post('/auth/login')
+          .send({ email: 'user@example.com', password: 'password' })
+          .expect(201);
+      }
+
+      await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ email: 'user@example.com', password: 'password' })
         .expect(429);
     } finally {
       await app.close();

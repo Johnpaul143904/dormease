@@ -55,7 +55,10 @@ describe('AuthService', () => {
         operation(tx),
     );
     resetEmailService = { send: jest.fn().mockResolvedValue(undefined) };
-    jwtService = new JwtService({ secret: TEST_JWT_SECRET });
+    jwtService = new JwtService({
+      secret: TEST_JWT_SECRET,
+      signOptions: { expiresIn: '15m' },
+    });
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -115,6 +118,8 @@ describe('AuthService', () => {
       email: user.email,
       role: user.role,
     });
+    const accessTokenPayload = jwtService.decode(session.accessToken);
+    expect(session.accessTokenExpiresAt).toBe(accessTokenPayload.exp * 1000);
     expect(prisma.user.create).not.toHaveBeenCalled();
     expect(prisma.user.update).not.toHaveBeenCalled();
   });

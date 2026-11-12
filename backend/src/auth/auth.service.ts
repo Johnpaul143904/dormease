@@ -318,8 +318,18 @@ export class AuthService {
       email: user.email,
       role: user.role,
     });
+    const payload = this.jwtService.decode(accessToken);
+    if (
+      typeof payload !== 'object' ||
+      payload === null ||
+      typeof payload.exp !== 'number'
+    ) {
+      throw new Error('Generated access token is missing its expiration claim');
+    }
+
     return {
       accessToken,
+      accessTokenExpiresAt: payload.exp * 1000,
       user: {
         id: user.id,
         fullName: user.fullName,

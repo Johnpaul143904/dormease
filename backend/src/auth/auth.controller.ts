@@ -35,6 +35,8 @@ export class AuthController {
 
   @Post('login')
   @Public()
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 5, ttl: 15 * 60 * 1000 } })
   async login(
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) response: Response,
@@ -80,33 +82,25 @@ export class AuthController {
 
   private setSessionCookie(
     response: Response,
-    session: { accessToken: string; user: unknown },
+    session: {
+      accessToken: string;
+      accessTokenExpiresAt: number;
+      user: unknown;
+    },
   ) {
     response.cookie('dormease_access_token', session.accessToken, {
       ...this.cookieOptions(),
-      maxAge: 15 * 60 * 1000,
+      maxAge: Math.max(0, session.accessTokenExpiresAt - Date.now()),
     });
     return { user: session.user };
   }
 
-    private cookieOptions() {
+  private cookieOptions() {
     return {
       httpOnly: true,
-      secure: true,
-      sameSite: 'none' as const,
+      secure: this.authService.isProduction(),
+      sameSite: 'lax' as const,
       path: '/',
     };
   }
-
-
-  // private cookieOptions() {
-  //   return {
-  //     httpOnly: true,
-  //     secure: this.authService.isProduction(),
-  //     sameSite: this.authService.isProduction()
-  //       ? ('none' as const)
-  //       : ('lax' as const),
-  //     path: '/',
-  //   };
-  // }
 }
