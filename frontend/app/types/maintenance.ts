@@ -24,6 +24,7 @@ export interface MaintenanceRequest {
   priority: MaintenancePriority;
   requestDate: string;
   status: MaintenanceStatus;
+  isPublic: boolean;
   updatedAt?: string;
   announcementTitle?: string | null;
   announcementDescription?: string | null;

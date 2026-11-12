@@ -8,7 +8,7 @@ const nav = [
   { label: "Maintenance", to: "/tenant/maintenance", icon: "⚒" },
   { label: "My profile", to: "/profile", icon: "♙" },
 ];
-const auth = useAuth();
+const auth = useDormEaseAuth();
 const displayName = computed(() => auth.user.value?.fullName || "Account");
 const initials = computed(
   () =>

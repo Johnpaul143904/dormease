@@ -1,12 +1,19 @@
 API base URL: http://localhost:3001/api
 Frontend URL: http://localhost:3000
-The frontend NUXT_PUBLIC_API_BASE_URL overrides the API base URL.
+The browser uses the same-origin /api route. Set NUXT_API_BASE_URL on the
+frontend server to the backend API base URL (including /api); locally it
+defaults to http://localhost:3001/api. NUXT_PUBLIC_API_BASE_URL is accepted as
+a fallback for existing deployments.
 NestJS global prefix: /api
 
 Authentication
-POST /api/auth/login
-POST /api/auth/register
-POST /api/auth/logout
+Clerk handles sign-in, sign-up, sign-out, and password reset in the frontend.
+Protected API requests require an Authorization: Bearer <Clerk session token>
+header. The API validates the Clerk session and maps its user ID to the existing
+PostgreSQL user and role.
+POST /api/auth/register (authenticated Clerk session; links a matching existing
+account by verified email or provisions a tenant account; admin registration
+requires the configured invitation code)
 GET /api/auth/profile
 PATCH /api/auth/profile
 
@@ -69,15 +76,17 @@ Approval status changes are stored in MaintenanceStatusHistory.
 Notifications
 No notification routes are implemented yet.
 
-Tenant creation requires fullName, email, and a password of at least 8 characters.
+Tenant creation requires fullName and email. The tenant creates their credential
+through Clerk by signing up with that verified email. Email changes for linked
+tenant accounts must first be verified in Clerk.
 Tenant deletion permanently removes the account and its linked assignments,
 payments, maintenance requests, and room invitations. Payment records can be
 printed from a payment's Details dialog.
 
 Mga kulang pa:
 
-1. Pag-usab o pag-reset sa password.
-2. Notifications para sa payments, maintenance requests, ug room invitations.
-3. Dugang staff dashboard ug role/permission checks.
-4. Integration tests para sa login, invitations, payments, ug maintenance.
-5. account CRUD
+1. Notifications para sa payments, maintenance requests, ug room invitations.
+2. Dugang staff dashboard ug role/permission checks.
+3. Integration tests para sa Clerk authentication, invitations, payments, ug
+   maintenance.
+4. Account CRUD.

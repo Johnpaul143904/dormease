@@ -7,13 +7,34 @@ export default defineNuxtConfig({
 
   modules: [
     '@nuxtjs/tailwindcss',
+    '@clerk/nuxt',
   ],
+
+  clerk: {
+    publishableKey:
+      process.env.NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
+      process.env.CLERK_PUBLISHABLE_KEY,
+    signInUrl: '/login',
+    signUpUrl: '/register',
+    signInForceRedirectUrl: '/dashboard',
+    signInFallbackRedirectUrl: '/dashboard',
+    signUpForceRedirectUrl: '/auth/complete',
+    signUpFallbackRedirectUrl: '/auth/complete',
+  },
 
   css: ['~/assets/css/main.css'],
 
   runtimeConfig: {
+    clerk: {
+      secretKey:
+        process.env.NUXT_CLERK_SECRET_KEY || process.env.CLERK_SECRET_KEY,
+    },
+    apiBaseUrl:
+      process.env.NUXT_API_BASE_URL ||
+      process.env.NUXT_PUBLIC_API_BASE_URL ||
+      'http://localhost:3001/api',
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api',
+      apiBase: '/api',
     },
   },
 });

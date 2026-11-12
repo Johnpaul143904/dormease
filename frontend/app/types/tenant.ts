@@ -15,7 +15,6 @@ export interface Tenant {
 export interface TenantInput {
   fullName: string
   email: string
-  password?: string
   contactNumber: string
   address: string
   emergencyContact: string

@@ -17,7 +17,7 @@ const nav = [
   { label: "Payments", to: "/payments", icon: "₱" },
   { label: "Maintenance", to: "/maintenance", icon: "⚒" },
 ];
-const auth = useAuth();
+const auth = useDormEaseAuth();
 const dormData = useDormData();
 const operations = useOperations();
 const isMenuOpen = ref(false);

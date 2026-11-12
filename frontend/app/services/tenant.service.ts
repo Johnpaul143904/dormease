@@ -23,7 +23,7 @@ export interface TenantRecord {
 export const tenantService = {
   list: () => useApi().request<TenantRecord[]>("/tenants"),
   get: (id: number) => useApi().request<TenantRecord>(`/tenants/${id}`),
-  create: (payload: TenantInput & { password: string }) =>
+  create: (payload: TenantInput) =>
     useApi().request<TenantRecord>("/tenants", {
       method: "POST",
       body: payload,

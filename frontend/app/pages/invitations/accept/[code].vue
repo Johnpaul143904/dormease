@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const route = useRoute();
 const data = useDormData();
-const auth = useAuth();
+const auth = useDormEaseAuth();
 const code = computed(() =>
   typeof route.params.code === "string" ? route.params.code : "",
 );
@@ -15,7 +15,14 @@ const notice = ref("");
 definePageMeta({ layout: "auth" });
 
 onMounted(async () => {
-  await auth.restoreSession();
+  try {
+    await auth.restoreSession();
+  } catch (error) {
+    notice.value =
+      error instanceof Error
+        ? error.message
+        : "Unable to verify your DormEase account.";
+  }
   result.value = await data.joinWithInvitation(code.value);
   isLoading.value = false;
 });

@@ -71,7 +71,7 @@ export function useOperations() {
             description: string;
             priority: MaintenanceRequest["priority"];
             status: string;
-            isPublic?: boolean;
+            isPublic: boolean;
             createdAt: string;
             updatedAt?: string;
             announcementTitle?: string | null;

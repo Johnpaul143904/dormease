@@ -2,7 +2,7 @@
 import AdminShell from "~/components/layout/AdminShell.vue";
 import TenantShell from "~/components/layout/TenantShell.vue";
 
-const auth = useAuth();
+const auth = useDormEaseAuth();
 const authApi = useAuthApi();
 const shell = computed(() =>
   auth.role.value === "TENANT" ? TenantShell : AdminShell,
@@ -73,6 +73,12 @@ function cancelChanges() {
         <p class="mt-1 text-sm text-slate-500">
           Update your account information.
         </p>
+        <NuxtLink
+          to="/account"
+          class="mt-2 inline-block text-sm font-semibold text-brand-600 hover:text-brand-700"
+        >
+          Manage sign-in, password, and email in Clerk
+        </NuxtLink>
       </div>
       <div
         v-if="successMessage"
@@ -103,10 +109,15 @@ function cancelChanges() {
           <label class="text-sm font-medium"
             >Email address<input
               v-model.trim="form.email"
-              required
               type="email"
+              readonly
               class="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5"
-          /></label>
+          />
+            <span class="mt-1 block text-xs font-normal text-slate-500">
+              Verify email changes in Clerk account settings; DormEase syncs
+              the verified primary email automatically.
+            </span>
+          </label>
           <label class="text-sm font-medium"
             >Phone number<input
               v-model.trim="form.contactNumber"

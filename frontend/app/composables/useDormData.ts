@@ -141,7 +141,7 @@ export function useDormData() {
     () => null,
   );
   const api = useApi();
-  const auth = useAuth();
+  const auth = useDormEaseAuth();
   const loading = useState("dorm-data-loading", () => false);
   const error = useState("dorm-data-error", () => "");
 
@@ -279,7 +279,6 @@ export function useDormData() {
         ...input,
         email: input.email.trim(),
         fullName: input.fullName.trim(),
-        password: input.password,
       },
     });
     await loadFromApi();

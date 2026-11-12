@@ -27,7 +27,6 @@ const errorMessage = ref("");
 const emptyForm = () => ({
   fullName: "",
   email: "",
-  password: "",
   contactNumber: "",
   address: "",
   emergencyContact: "",
@@ -65,7 +64,6 @@ function openEdit(tenant: Tenant) {
   Object.assign(form, {
     fullName: tenant.fullName,
     email: tenant.email,
-    password: "",
     contactNumber: tenant.contactNumber,
     address: tenant.address ?? "",
     emergencyContact: tenant.emergencyContact ?? "",
@@ -86,7 +84,8 @@ async function saveTenant() {
       notice.value = "Tenant details updated.";
     } else {
       await data.createTenant(payload);
-      notice.value = "Tenant account created.";
+      notice.value =
+        "Tenant record created. They can sign up through Clerk with this verified email.";
     }
     modalOpen.value = false;
   } catch (error) {
@@ -338,23 +337,17 @@ async function removeTenant(tenant: Tenant) {
                 class="w-full rounded-xl border border-slate-200 px-3 py-2.5"
               />
             </label>
-            <label
+            <p
               v-if="!editingTenant"
-              class="space-y-1 text-sm font-medium sm:col-span-2"
-              >Temporary password
-              <input
-                v-model="form.password"
-                required
-                type="password"
-                minlength="8"
-                autocomplete="new-password"
-                class="w-full rounded-xl border border-slate-200 px-3 py-2.5"
-              />
-              <span class="block text-xs font-normal text-slate-500"
-                >At least 8 characters. Give this password privately to the
-                tenant.</span
-              >
-            </label>
+              class="text-xs text-slate-500 sm:col-span-2"
+            >
+              The tenant must create their account through Clerk using this
+              verified email address.
+            </p>
+            <p v-else class="text-xs text-slate-500 sm:col-span-2">
+              For linked accounts, the tenant must verify a new email address
+              through Clerk before it can be saved here.
+            </p>
             <label class="space-y-1 text-sm font-medium"
               >Contact number
               <input

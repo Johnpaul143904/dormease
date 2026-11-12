@@ -1,70 +1,38 @@
-import type { LoginPayload, RegistrationPayload } from "~/types/auth";
+import type {
+  AuthResponse,
+  AuthUser,
+  RegistrationPayload,
+} from "~/types/auth";
 
 export function useAuthApi() {
   const api = useApi();
 
   return {
-    endpoints: {
-      login: "/auth/login",
-      register: "/auth/register",
-    },
-    createLoginPayload(email: string, password: string): LoginPayload {
-      return {
-        email: email.trim(),
-        password,
-      };
-    },
-    createRegistrationPayload(
-      fullName: string,
-      email: string,
-      password: string,
-      accountType: "ADMIN" | "TENANT",
-      invitationCode?: string,
-    ): RegistrationPayload {
-      return {
-        fullName: fullName.trim(),
-        email: email.trim(),
-        password,
-        accountType,
-        invitationCode,
-      };
-    },
-    login(payload: LoginPayload) {
-      return api.request<import("~/types/auth").AuthResponse>("/auth/login", {
+    register(payload: RegistrationPayload = { accountType: "TENANT" }) {
+      return api.request<AuthResponse>("/auth/register", {
         method: "POST",
         body: payload,
       });
     },
-    register(payload: RegistrationPayload) {
-      return api.request<import("~/types/auth").AuthResponse>(
-        "/auth/register",
-        {
-          method: "POST",
-          body: payload,
-        },
-      );
-    },
     profile() {
-      return api.request<{ user: import("~/types/auth").AuthResponse["user"] }>(
-        "/auth/profile",
-      );
+      return api.request<AuthResponse>("/auth/profile");
     },
     updateProfile(
-      payload: Pick<
-        import("~/types/auth").AuthResponse["user"],
-        "fullName" | "email" | "contactNumber" | "address" | "emergencyContact"
+      payload: Partial<
+        Pick<
+          AuthUser,
+          | "fullName"
+          | "email"
+          | "contactNumber"
+          | "address"
+          | "emergencyContact"
+        >
       >,
     ) {
-      return api.request<{ user: import("~/types/auth").AuthResponse["user"] }>(
-        "/auth/profile",
-        {
-          method: "PATCH",
-          body: payload,
-        },
-      );
-    },
-    logout() {
-      return api.request("/auth/logout", { method: "POST" });
+      return api.request<AuthResponse>("/auth/profile", {
+        method: "PATCH",
+        body: payload,
+      });
     },
   };
 }

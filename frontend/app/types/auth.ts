@@ -1,5 +1,15 @@
 export type UserRole = "ADMIN" | "STAFF" | "TENANT";
 
+export interface AuthUser {
+  id: number;
+  fullName: string;
+  email: string;
+  role: UserRole;
+  contactNumber?: string | null;
+  address?: string | null;
+  emergencyContact?: string | null;
+}
+
 const dashboardRoutes: Record<UserRole, string> = {
   ADMIN: "/admin/dashboard",
   STAFF: "/staff/dashboard",
@@ -35,27 +45,11 @@ export function roleRouteRedirect(path: string, role: UserRole): string | null {
   return null;
 }
 
-export interface LoginPayload {
-  email: string;
-  password: string;
-}
-
 export interface RegistrationPayload {
-  fullName: string;
-  email: string;
-  password: string;
-  accountType: "ADMIN" | "TENANT";
+  accountType?: "ADMIN" | "TENANT";
   invitationCode?: string;
 }
 
 export interface AuthResponse {
-  user: {
-    id: number;
-    fullName: string;
-    email: string;
-    role: UserRole;
-    contactNumber?: string | null;
-    address?: string | null;
-    emergencyContact?: string | null;
-  };
+  user: AuthUser;
 }

@@ -2,7 +2,7 @@
 import TenantShell from "~/components/layout/TenantShell.vue";
 
 const data = useDormData();
-const auth = useAuth();
+const auth = useDormEaseAuth();
 onMounted(() => {
   void data.loadTenantData();
 });

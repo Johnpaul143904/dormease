@@ -4,7 +4,7 @@ import StatusBadge from "~/components/ui/StatusBadge.vue";
 import type { MaintenancePriority } from "~/types/maintenance";
 
 const operations = useOperations();
-const auth = useAuth();
+const auth = useDormEaseAuth();
 if (auth.role.value === "TENANT") operations.maintenance.value = [];
 const showForm = ref(false);
 const isSubmitting = ref(false);

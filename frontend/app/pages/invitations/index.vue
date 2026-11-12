@@ -102,9 +102,9 @@ async function copyInvitationLink() {
   }
 }
 function saveQr() {
-  if (!qrDataUrl.value || !qrInvitation.value) return;
-  const roomNumber = roomName(qrInvitation.value.roomId)
-    .split(" · ")[0]
+  const invitation = qrInvitation.value;
+  if (!qrDataUrl.value || !invitation) return;
+  const roomNumber = (roomName(invitation.roomId).split(" · ")[0] ?? "Room")
     .replace(/[^a-zA-Z0-9-]/g, "");
   const link = document.createElement("a");
   link.href = qrDataUrl.value;

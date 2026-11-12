@@ -12,7 +12,7 @@ onMounted(() => {
 });
 const payments = operations.payments;
 const maintenance = operations.maintenance;
-const auth = useAuth();
+const auth = useDormEaseAuth();
 const stats = computed(() => [
   {
     label: "Total rooms",

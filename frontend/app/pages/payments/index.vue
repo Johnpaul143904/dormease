@@ -142,16 +142,10 @@ async function loadProof(
   notice.value = "";
   try {
     const api = useApi();
-    const response = await fetch(
-      `${api.apiBase}/payments/submissions/${submission.id}/proof`,
-      { credentials: "include" },
+    const blob = await api.request<Blob>(
+      `/payments/submissions/${submission.id}/proof`,
+      { responseType: "blob" },
     );
-    if (!response.ok) {
-      throw new Error(
-        `Unable to load receipt (${response.status} ${response.statusText}).`,
-      );
-    }
-    const blob = await response.blob();
     const objectUrl = URL.createObjectURL(blob);
     if (download) {
       const link = document.createElement("a");
@@ -236,11 +230,11 @@ function printPaymentRecord() {
     </main></body></html>`);
   printWindow.document.close();
 
-  const rows = [
+  const rows: Array<[string, string]> = [
     ["Record number", `PAY-${payment.id}`],
     ["Tenant", tenant?.fullName || "Tenant unavailable"],
     ["Email", tenant?.email || "—"],
-    ["Description", payment.description],
+    ["Description", payment.description ?? ""],
     ["Amount", `₱${payment.amount.toLocaleString()}`],
     ["Payment method", payment.paymentMethod],
     ["Reference number", payment.referenceNumber || "—"],

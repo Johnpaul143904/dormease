@@ -1,0 +1,59 @@
+Terminal 1 (backend)
+```powershell
+cd "A:\IT 109\FINALS\dormease\backend"
+npm install
+npx prisma generate
+npm run start:dev
+```
+
+Terminal 2 (frontend)
+```powershell
+cd "A:\IT 109\FINALS\dormease\frontend"
+npm install
+npm run dev
+```
+
+Then:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:3001/api
+
+Environment configuration:
+
+- Local development:
+  - Backend: `DATABASE_URL`, `CLERK_SECRET_KEY`, and `CLERK_PUBLISHABLE_KEY`.
+    `CORS_ORIGIN` defaults to `http://localhost:3000`; set
+    `CLERK_AUTHORIZED_PARTIES` to `http://localhost:3000` or let it fall back
+    to `CORS_ORIGIN`. `ADMIN_INVITATION_CODE` is needed only to provision an
+    administrator. `PORT` defaults to `3001`.
+  - Frontend: `NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY`,
+    `NUXT_CLERK_SECRET_KEY`, and `NUXT_API_BASE_URL` (normally
+    `http://localhost:3001/api`).
+- Vercel frontend: set `NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY`,
+  `NUXT_CLERK_SECRET_KEY`, and `NUXT_API_BASE_URL` to the Render API origin
+  ending in `/api`. `NUXT_CLERK_SECRET_KEY` is server-only; never prefix it
+  with `NUXT_PUBLIC_`.
+- Render backend: set `DATABASE_URL`, `CLERK_SECRET_KEY`,
+  `CLERK_PUBLISHABLE_KEY`, `CORS_ORIGIN`, and preferably
+  `CLERK_AUTHORIZED_PARTIES` to the deployed Vercel origin. Set
+  `ADMIN_INVITATION_CODE` only if administrator self-provisioning is enabled.
+  Render supplies `PORT`.
+
+The Clerk secret keys are server-side values. The Nuxt secret is configured
+under private `runtimeConfig.clerk`, not `runtimeConfig.public`; do not expose
+either secret key in browser code or a `NUXT_PUBLIC_` variable. The publishable
+keys are public identifiers, not secrets. The legacy `NUXT_PUBLIC_API_BASE_URL`
+is accepted as a fallback, but `NUXT_API_BASE_URL` is preferred for the
+server-side proxy.
+
+- If Prisma reports a stale client, run `npx prisma generate --config
+  prisma7.config.ts` from the backend directory.
+- Do not run `prisma migrate deploy` against production as a troubleshooting
+  step. The Clerk identity migration is additive but must be applied through a
+  reviewed deployment process with a database backup.
+
+If you get an error because of the long Windows path with spaces, make sure to use quotes around the folder path like this:
+```powershell
+cd "A:\IT 109\FINALS\dormease\backend"
+```
+
+If you want, I can also give you a one-click “run all” script for Windows.
