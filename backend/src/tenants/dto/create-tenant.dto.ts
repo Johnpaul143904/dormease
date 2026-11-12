@@ -8,10 +8,6 @@ export class CreateTenantDto {
   @IsEmail()
   email!: string;
 
-  @IsString()
-  @MinLength(8)
-  password!: string;
-
   @IsOptional()
   @IsString()
   contactNumber?: string;

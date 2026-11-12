@@ -3,204 +3,114 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
-  Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
-import { createHash, randomBytes } from 'node:crypto';
+import { UserRole } from '../generated/prisma/enums';
 import { PrismaService } from '../prisma/prisma.service';
-import { ForgotPasswordDto } from './dto/forgot-password.dto';
-import { LoginDto } from './dto/login.dto';
+import { ClerkIdentityService } from './clerk-identity.service';
 import { RegisterDto, RegistrationAccountType } from './dto/register.dto';
-import { ResetPasswordDto } from './dto/reset-password.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { PasswordResetEmailService } from './password-reset-email.service';
 
-const PASSWORD_RESET_TTL_MS = 20 * 60 * 1000;
-const PASSWORD_RESET_RESPONSE = {
-  message:
-    'If an account with that email exists, you will receive a password reset link shortly.',
-};
+const profileSelect = {
+  id: true,
+  fullName: true,
+  email: true,
+  role: true,
+} as const;
 
 @Injectable()
 export class AuthService {
-  private readonly logger = new Logger(AuthService.name);
-
   constructor(
     private readonly prisma: PrismaService,
-    private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    private readonly passwordResetEmailService: PasswordResetEmailService,
+    private readonly clerkIdentityService: ClerkIdentityService,
   ) {}
 
-  async register(dto: RegisterDto) {
-    const email = this.normalizeEmail(dto.email);
-    const existing = await this.findUserByEmail(email);
-    if (existing) throw new ConflictException('Email is already registered');
-    const role =
-      dto.accountType === RegistrationAccountType.ADMIN
-        ? this.authorizeAdminRegistration(dto.invitationCode)
-        : 'TENANT';
-
-    const user = await this.prisma.user.create({
-      data: {
-        fullName: dto.fullName.trim(),
-        email,
-        password: await bcrypt.hash(dto.password, 12),
-        role,
-        ...(role === 'TENANT' ? { tenant: { create: {} } } : {}),
-      },
-    });
-
-    return this.issueSession(user);
-  }
-
-  async login(dto: LoginDto) {
-    const user = await this.findUserByEmail(this.normalizeEmail(dto.email));
-    if (!user || !(await bcrypt.compare(dto.password, user.password))) {
-      throw new UnauthorizedException('Invalid email or password');
-    }
-
-    return this.issueSession(user);
-  }
-
-  async forgotPassword(dto: ForgotPasswordDto) {
-    const user = await this.findUserByEmail(this.normalizeEmail(dto.email));
-    if (!user) return PASSWORD_RESET_RESPONSE;
-
-    const token = randomBytes(32).toString('hex');
-    const tokenHash = this.hashResetToken(token);
-    const now = new Date();
-    const expiresAt = new Date(now.getTime() + PASSWORD_RESET_TTL_MS);
-
-    await this.prisma.$transaction(
-      async (tx) => {
-        await tx.passwordResetToken.updateMany({
-          where: { userId: user.id, usedAt: null },
-          data: { usedAt: now },
-        });
-        await tx.passwordResetToken.create({
-          data: { userId: user.id, tokenHash, expiresAt },
-        });
-      },
-      { isolationLevel: 'Serializable' },
-    );
+  async provisionUser(clerkUserId: string, dto: RegisterDto) {
+    const identity =
+      await this.clerkIdentityService.getVerifiedIdentity(clerkUserId);
+    const email = identity.email.trim().toLowerCase();
 
     try {
-      const frontendUrl = this.getFrontendUrl();
-      const resetUrl = `${frontendUrl}/reset-password?token=${encodeURIComponent(token)}`;
-      await this.passwordResetEmailService.send(
-        user.email,
-        user.fullName,
-        resetUrl,
-      );
-    } catch {
-      await this.prisma.passwordResetToken.updateMany({
-        where: { tokenHash, usedAt: null },
-        data: { usedAt: new Date() },
-      });
-      this.logger.error(
-        'Password reset email delivery failed; the issued reset token was invalidated.',
-      );
-    }
-
-    return PASSWORD_RESET_RESPONSE;
-  }
-
-  async resetPassword(dto: ResetPasswordDto) {
-    if (Buffer.byteLength(dto.newPassword, 'utf8') > 72) {
-      throw new BadRequestException(
-        'Password must be no more than 72 bytes when encoded as UTF-8',
-      );
-    }
-
-    const tokenHash = this.hashResetToken(dto.token);
-    const now = new Date();
-    const resetToken = await this.prisma.passwordResetToken.findUnique({
-      where: { tokenHash },
-    });
-    if (
-      !resetToken ||
-      resetToken.usedAt ||
-      resetToken.expiresAt.getTime() <= now.getTime()
-    ) {
-      throw new UnauthorizedException('Invalid or expired reset token');
-    }
-
-    const password = await bcrypt.hash(dto.newPassword, 12);
-    await this.prisma.$transaction(
-      async (tx) => {
-        const claimedToken = await tx.passwordResetToken.updateMany({
-          where: {
-            id: resetToken.id,
-            usedAt: null,
-            expiresAt: { gt: now },
-          },
-          data: { usedAt: now },
+      const user = await this.prisma.$transaction(async (tx) => {
+        const linkedUser = await tx.user.findUnique({
+          where: { clerkUserId },
+          select: profileSelect,
         });
-        if (claimedToken.count !== 1) {
-          throw new UnauthorizedException('Invalid or expired reset token');
+        if (linkedUser) return linkedUser;
+
+        const matchingUsers = await tx.user.findMany({
+          where: { email: { equals: email, mode: 'insensitive' } },
+          take: 2,
+          select: {
+            ...profileSelect,
+            clerkUserId: true,
+            tenant: { select: { userId: true } },
+          },
+        });
+        if (matchingUsers.length > 1) {
+          throw new ConflictException(
+            'Multiple DormEase accounts match this email; contact an administrator',
+          );
         }
 
-        await tx.user.update({
-          where: { id: resetToken.userId },
-          data: { password },
+        const existingUser = matchingUsers[0];
+        if (existingUser) {
+          if (existingUser.clerkUserId) {
+            throw new ConflictException(
+              'This DormEase account is linked to another Clerk identity',
+            );
+          }
+
+          const linked = await tx.user.update({
+            where: { id: existingUser.id },
+            data: { clerkUserId },
+            select: profileSelect,
+          });
+          if (linked.role === UserRole.TENANT && !existingUser.tenant) {
+            await tx.tenant.create({ data: { userId: linked.id } });
+          }
+          return linked;
+        }
+
+        const role =
+          dto.accountType === RegistrationAccountType.ADMIN
+            ? this.authorizeAdminRegistration(dto.invitationCode)
+            : UserRole.TENANT;
+        const fullName =
+          identity.fullName || email.slice(0, email.indexOf('@'));
+
+        return tx.user.create({
+          data: {
+            fullName,
+            email,
+            password: null,
+            clerkUserId,
+            role,
+            ...(role === UserRole.TENANT ? { tenant: { create: {} } } : {}),
+          },
+          select: profileSelect,
         });
-        await tx.passwordResetToken.updateMany({
-          where: { userId: resetToken.userId, usedAt: null },
-          data: { usedAt: now },
-        });
-      },
-      { isolationLevel: 'Serializable' },
-    );
+      });
 
-    return { message: 'Password reset successfully. Please sign in.' };
-  }
-
-  private hashResetToken(token: string) {
-    return createHash('sha256').update(token).digest('hex');
-  }
-
-  private getFrontendUrl() {
-    const configuredUrl = this.configService.getOrThrow<string>('FRONTEND_URL');
-    const frontendUrl = new URL(configuredUrl);
-    if (
-      !['http:', 'https:'].includes(frontendUrl.protocol) ||
-      frontendUrl.username ||
-      frontendUrl.password
-    ) {
-      throw new Error('FRONTEND_URL must be a valid HTTP(S) URL');
+      return { user };
+    } catch (error) {
+      if (this.isUniqueViolation(error)) {
+        throw new ConflictException(
+          'This email or Clerk identity is already linked to a DormEase account',
+        );
+      }
+      throw error;
     }
-    if (
-      this.configService.get<string>('NODE_ENV') === 'production' &&
-      frontendUrl.protocol !== 'https:'
-    ) {
-      throw new Error('FRONTEND_URL must use HTTPS in production');
-    }
-    return frontendUrl.toString().replace(/\/+$/, '');
-  }
-
-  private normalizeEmail(email: string) {
-    return email.trim().toLowerCase();
-  }
-
-  private findUserByEmail(email: string) {
-    return this.prisma.user.findFirst({
-      where: { email: { equals: email, mode: 'insensitive' } },
-    });
   }
 
   async profile(userId: number) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: {
-        id: true,
-        fullName: true,
-        email: true,
-        role: true,
+        ...profileSelect,
         tenant: {
           select: {
             contactNumber: true,
@@ -222,7 +132,11 @@ export class AuthService {
     };
   }
 
-  async updateProfile(userId: number, dto: UpdateProfileDto) {
+  async updateProfile(
+    userId: number,
+    clerkUserId: string,
+    dto: UpdateProfileDto,
+  ) {
     const currentUser = await this.prisma.user.findUnique({
       where: { id: userId },
       include: { tenant: true },
@@ -231,6 +145,16 @@ export class AuthService {
 
     const email = dto.email?.trim().toLowerCase();
     const fullName = dto.fullName?.trim();
+    if (email && email !== currentUser.email.toLowerCase()) {
+      const identity =
+        await this.clerkIdentityService.getVerifiedIdentity(clerkUserId);
+      if (email !== identity.email) {
+        throw new BadRequestException(
+          'Verify the new email address with Clerk before updating your profile',
+        );
+      }
+    }
+
     try {
       const user = await this.prisma.$transaction(async (tx) => {
         const updatedUser = await tx.user.update({
@@ -239,7 +163,7 @@ export class AuthService {
             ...(email ? { email } : {}),
             ...(fullName ? { fullName } : {}),
           },
-          select: { id: true, fullName: true, email: true, role: true },
+          select: profileSelect,
         });
         if (
           currentUser.tenant &&
@@ -279,12 +203,7 @@ export class AuthService {
         },
       };
     } catch (error) {
-      if (
-        typeof error === 'object' &&
-        error !== null &&
-        'code' in error &&
-        error.code === 'P2002'
-      ) {
+      if (this.isUniqueViolation(error)) {
         throw new ConflictException('Email address is already in use');
       }
       throw error;
@@ -304,46 +223,15 @@ export class AuthService {
         'Admin registration requires a valid invitation code',
       );
     }
-    return 'ADMIN' as const;
+    return UserRole.ADMIN;
   }
 
-  async issueSession(user: {
-    id: number;
-    fullName: string;
-    email: string;
-    role: string;
-  }) {
-    const accessToken = await this.jwtService.signAsync({
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-    });
-    const payload = this.jwtService.decode(accessToken);
-    if (
-      typeof payload !== 'object' ||
-      payload === null ||
-      typeof payload.exp !== 'number'
-    ) {
-      throw new Error('Generated access token is missing its expiration claim');
-    }
-
-    return {
-      accessToken,
-      accessTokenExpiresAt: payload.exp * 1000,
-      user: {
-        id: user.id,
-        fullName: user.fullName,
-        email: user.email,
-        role: user.role,
-      },
-    };
-  }
-
-  async logout() {
-    return { success: true };
-  }
-
-  isProduction() {
-    return this.configService.get('NODE_ENV') === 'production';
+  private isUniqueViolation(error: unknown): boolean {
+    return (
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      error.code === 'P2002'
+    );
   }
 }

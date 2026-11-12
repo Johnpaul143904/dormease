@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TenantsService } from './tenants.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { ClerkIdentityService } from '../auth/clerk-identity.service';
 
 describe('TenantsService', () => {
   let service: TenantsService;
@@ -14,12 +15,14 @@ describe('TenantsService', () => {
     room: { findUnique: jest.fn(), update: jest.fn() },
   };
   const prismaMock = {
+    user: { findUnique: jest.fn() },
     tenant: { findMany: jest.fn(), findUnique: jest.fn(), create: jest.fn() },
     $transaction: jest.fn(
       async (callback: (transaction: typeof tx) => Promise<unknown>) =>
         callback(tx),
     ),
   };
+  const clerkIdentity = { getVerifiedIdentity: jest.fn() };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -27,6 +30,7 @@ describe('TenantsService', () => {
       providers: [
         TenantsService,
         { provide: PrismaService, useValue: prismaMock },
+        { provide: ClerkIdentityService, useValue: clerkIdentity },
       ],
     }).compile();
 
@@ -37,7 +41,7 @@ describe('TenantsService', () => {
     expect(service).toBeDefined();
   });
 
-  it('creates a tenant account with a hashed password', async () => {
+  it('creates a tenant account without a local password', async () => {
     prismaMock.tenant.create.mockResolvedValue({
       id: 1,
       user: { id: 2, fullName: 'New Tenant', email: 'tenant@example.com' },
@@ -47,7 +51,6 @@ describe('TenantsService', () => {
       service.create({
         fullName: ' New Tenant ',
         email: ' TENANT@example.com ',
-        password: 'temporary-password',
       }),
     ).resolves.toMatchObject({ id: 1 });
     expect(prismaMock.tenant.create).toHaveBeenCalledWith(
@@ -58,17 +61,8 @@ describe('TenantsService', () => {
               email: 'tenant@example.com',
               fullName: 'New Tenant',
               role: 'TENANT',
-              password: expect.stringMatching(/^\$2[aby]\$/),
+              password: null,
             }),
-          },
-        }),
-      }),
-    );
-    expect(prismaMock.tenant.create).not.toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          user: {
-            create: expect.objectContaining({ password: 'temporary-password' }),
           },
         }),
       }),
@@ -78,8 +72,9 @@ describe('TenantsService', () => {
   it('updates account identity and tenant contact fields together', async () => {
     prismaMock.tenant.findUnique.mockResolvedValue({
       id: 1,
-      user: { id: 2 },
+      user: { id: 2, email: 'old@example.com' },
     });
+    prismaMock.user.findUnique.mockResolvedValue({ clerkUserId: null });
     tx.tenant.update.mockResolvedValue({
       id: 1,
       user: { id: 2, fullName: 'Updated Name', email: 'new@example.com' },
@@ -101,6 +96,27 @@ describe('TenantsService', () => {
         data: { contactNumber: '12345' },
       }),
     );
+  });
+
+  it('requires a linked tenant email to be verified in Clerk before changing it', async () => {
+    prismaMock.tenant.findUnique.mockResolvedValue({
+      id: 1,
+      user: {
+        id: 2,
+        email: 'old@example.com',
+      },
+    });
+    prismaMock.user.findUnique.mockResolvedValue({
+      clerkUserId: 'user_clerk_123',
+    });
+    clerkIdentity.getVerifiedIdentity.mockResolvedValue({
+      email: 'verified@example.com',
+    });
+
+    await expect(
+      service.update(1, { email: 'unverified@example.com' }),
+    ).rejects.toMatchObject({ status: 400 });
+    expect(prismaMock.$transaction).not.toHaveBeenCalled();
   });
 
   it('deletes tenant-linked records and keeps a room occupied for remaining tenants', async () => {

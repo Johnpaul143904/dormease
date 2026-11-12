@@ -13,7 +13,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { RoomInvitationsModule } from './room-invitations/room-invitations.module';
 import { APP_GUARD } from '@nestjs/core';
-import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { ClerkAuthGuard } from './auth/clerk-auth.guard';
 import { RolesGuard } from './auth/roles.guard';
 
 @Module({
@@ -35,7 +35,7 @@ import { RolesGuard } from './auth/roles.guard';
   controllers: [AppController],
   providers: [
     AppService,
-    { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: ClerkAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
   ],
 })

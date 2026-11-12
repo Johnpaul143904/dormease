@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
 
 export enum RegistrationAccountType {
   ADMIN = 'ADMIN',
@@ -6,21 +6,12 @@ export enum RegistrationAccountType {
 }
 
 export class RegisterDto {
-  @IsString()
-  @MinLength(2)
-  fullName!: string;
-
-  @IsEmail()
-  email!: string;
-
-  @IsString()
-  @MinLength(8)
-  password!: string;
-
+  @IsOptional()
   @IsEnum(RegistrationAccountType)
-  accountType!: RegistrationAccountType;
+  accountType?: RegistrationAccountType;
 
   @IsOptional()
   @IsString()
+  @MinLength(1)
   invitationCode?: string;
 }

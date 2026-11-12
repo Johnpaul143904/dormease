@@ -27,10 +27,12 @@
 
 ## DormEase API
 
-The API listens on `http://localhost:3001/api`. Authentication uses an HTTP-only
-session cookie. Admin/staff routes manage rooms, tenants, assignments, payments,
-maintenance requests, and room invitations. Tenant-specific routes use the
-authenticated account and do not accept a client-supplied tenant ID.
+The API listens on `http://localhost:3001/api`. Clerk handles frontend
+authentication. Protected API requests must include a Clerk session token in
+the `Authorization: Bearer <token>` header. The API validates the session and
+loads the PostgreSQL user ID and role; it does not trust role claims from the
+client. Tenant-specific routes use that authenticated database account and do
+not accept a client-supplied tenant ID.
 
 | Resource    | Admin/staff                                                       | Tenant                              |
 | ----------- | ----------------------------------------------------------------- | ----------------------------------- |
@@ -42,24 +44,31 @@ authenticated account and do not accept a client-supplied tenant ID.
 | Maintenance | `GET/POST /maintenance`, `PATCH /maintenance/:id`                 | `GET/POST /maintenance/me`          |
 | Invitations | `GET/POST /room-invitations`, `POST /room-invitations/:id/revoke` | Accept/reject an invitation by code |
 
-Set `DATABASE_URL`, `ADMIN_INVITATION_CODE`, `FRONTEND_URL`, `RESEND_API_KEY`,
-and `RESEND_FROM_EMAIL` in the backend environment. Locally, set
-`FRONTEND_URL=http://localhost:3000`; in production, use the HTTPS URL of the
-deployed frontend. The Resend sender must be permitted for your Resend account.
-Use the configured `ADMIN_INVITATION_CODE` when registering the first admin; do
-not commit or share credentials.
+Set `DATABASE_URL`, `CLERK_SECRET_KEY`, `CLERK_PUBLISHABLE_KEY`,
+`CLERK_AUTHORIZED_PARTIES`, `CORS_ORIGIN`, and `ADMIN_INVITATION_CODE` in the
+backend environment. `CLERK_AUTHORIZED_PARTIES` is a comma-separated list of
+allowed frontend origins (for example, `http://localhost:3000` locally and the
+deployed HTTPS frontend origin in production). Use the configured
+`ADMIN_INVITATION_CODE` only for authorized admin provisioning. Do not commit or
+share credentials.
 
-Apply the additive password-reset migration without resetting the database:
+For the Nuxt deployment, configure `NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY`,
+`NUXT_CLERK_SECRET_KEY`, and `NUXT_API_BASE_URL`. The Nuxt API base should point
+to the Render API origin with the `/api` prefix; browser requests use the
+same-origin frontend proxy.
+
+The Clerk identity migration is additive: it makes `User.password` nullable for
+new Clerk-backed accounts and adds a unique nullable `User.clerkUserId`. It does
+not delete users, password hashes, role data, relations, or password-reset
+tables. Generate the local client with:
 
 ```bash
-npx prisma migrate deploy --config prisma7.config.ts
 npx prisma generate --config prisma7.config.ts
 ```
 
-Password recovery is available through `POST /api/auth/forgot-password` and
-`POST /api/auth/reset-password`. Reset links are single-use and expire after 20
-minutes. Recovery requests are limited to five per IP per 15 minutes; reset
-attempts are limited to ten per IP per 15 minutes.
+The migration has not been applied to any database. Review and apply it through
+the deployment's normal backup and migration process; never use database reset
+or destructive schema commands.
 
 ## Project setup
 

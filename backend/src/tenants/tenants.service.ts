@@ -1,16 +1,20 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
+import { ClerkIdentityService } from '../auth/clerk-identity.service';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
 
 @Injectable()
 export class TenantsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly clerkIdentityService: ClerkIdentityService,
+  ) {}
 
   findAll() {
     return this.prisma.tenant.findMany({
@@ -62,7 +66,7 @@ export class TenantsService {
             create: {
               fullName: dto.fullName.trim(),
               email: dto.email.trim().toLowerCase(),
-              password: await bcrypt.hash(dto.password, 12),
+              password: null,
               role: 'TENANT',
             },
           },
@@ -88,6 +92,24 @@ export class TenantsService {
 
   async update(id: number, dto: UpdateTenantDto) {
     const tenant = await this.findOne(id);
+    const email = dto.email?.trim().toLowerCase();
+    if (email !== undefined && email !== tenant.user.email.toLowerCase()) {
+      const user = await this.prisma.user.findUnique({
+        where: { id: tenant.user.id },
+        select: { clerkUserId: true },
+      });
+      if (user?.clerkUserId) {
+        const identity = await this.clerkIdentityService.getVerifiedIdentity(
+          user.clerkUserId,
+        );
+        if (identity.email !== email) {
+          throw new BadRequestException(
+            'Verify the new email address with Clerk before updating this tenant',
+          );
+        }
+      }
+    }
+
     try {
       return await this.prisma.$transaction(async (tx) => {
         if (dto.fullName !== undefined || dto.email !== undefined) {
@@ -97,9 +119,7 @@ export class TenantsService {
               ...(dto.fullName !== undefined
                 ? { fullName: dto.fullName.trim() }
                 : {}),
-              ...(dto.email !== undefined
-                ? { email: dto.email.trim().toLowerCase() }
-                : {}),
+              ...(email !== undefined ? { email } : {}),
             },
           });
         }
