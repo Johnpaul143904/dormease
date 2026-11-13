@@ -28,13 +28,21 @@ export default defineNuxtConfig({
   runtimeConfig: {
     clerk: {
       secretKey:
-        process.env.NUXT_CLERK_SECRET_KEY || process.env.CLERK_SECRET_KEY,
+        process.env.NUXT_CLERK_SECRET_KEY ||
+        process.env.CLERK_SECRET_KEY ||
+        '',
     },
     apiBaseUrl:
       process.env.NUXT_API_BASE_URL ||
       process.env.NUXT_PUBLIC_API_BASE_URL ||
       'http://localhost:3001/api',
     public: {
+      clerk: {
+        publishableKey:
+          process.env.NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
+          process.env.CLERK_PUBLISHABLE_KEY ||
+          '',
+      },
       apiBase: '/api',
     },
   },
