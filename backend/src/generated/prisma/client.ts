@@ -66,7 +66,7 @@ export type Tenant = Prisma.TenantModel
 export type RoomAssignment = Prisma.RoomAssignmentModel
 /**
  * Model Payment
- * 
+ *
  */
 export type Payment = Prisma.PaymentModel
 /**

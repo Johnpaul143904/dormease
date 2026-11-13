@@ -23,6 +23,12 @@ export class RoomInvitationsController {
     return this.invitationsService.findAll();
   }
 
+  @Get('me')
+  @Roles(UserRole.TENANT)
+  findMine(@Req() request: { user: { sub: number } }) {
+    return this.invitationsService.findForTenant(request.user.sub);
+  }
+
   @Post()
   @Roles(UserRole.ADMIN, UserRole.STAFF)
   create(@Body() dto: CreateRoomInvitationDto) {
@@ -35,22 +41,25 @@ export class RoomInvitationsController {
     return this.invitationsService.findByCode(code);
   }
 
-  @Post(':code/accept')
+  @Post(':code/request')
   @Roles(UserRole.TENANT)
-  accept(
+  requestToJoin(
     @Param('code') code: string,
     @Req() request: { user: { sub: number } },
   ) {
-    return this.invitationsService.accept(code, request.user.sub);
+    return this.invitationsService.requestToJoin(code, request.user.sub);
   }
 
-  @Post(':code/reject')
-  @Roles(UserRole.TENANT)
-  reject(
-    @Param('code') code: string,
-    @Req() request: { user: { sub: number } },
-  ) {
-    return this.invitationsService.reject(code, request.user.sub);
+  @Post(':id/approve')
+  @Roles(UserRole.ADMIN)
+  approve(@Param('id', ParseIntPipe) id: number) {
+    return this.invitationsService.approve(id);
+  }
+
+  @Post(':id/reject')
+  @Roles(UserRole.ADMIN)
+  reject(@Param('id', ParseIntPipe) id: number) {
+    return this.invitationsService.reject(id);
   }
 
   @Post(':id/revoke')

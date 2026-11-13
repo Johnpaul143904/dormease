@@ -3,7 +3,14 @@ export interface RoomInvitationRecord {
   roomId: number;
   tenantId: number | null;
   code: string;
-  status: "ACTIVE" | "USED" | "EXPIRED" | "REVOKED" | "REJECTED";
+  status:
+    | "ACTIVE"
+    | "PENDING"
+    | "APPROVED"
+    | "USED"
+    | "EXPIRED"
+    | "REVOKED"
+    | "REJECTED";
   createdAt: string;
   expiresAt: string;
   room?: { id: number; roomNumber: string; building: string };

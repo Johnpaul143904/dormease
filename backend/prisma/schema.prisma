@@ -67,6 +67,8 @@ enum InvitationStatus {
   EXPIRED
   REVOKED
   REJECTED
+  PENDING
+  APPROVED
 }
 
 model User {

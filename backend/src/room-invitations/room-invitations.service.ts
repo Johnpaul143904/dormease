@@ -14,6 +14,19 @@ export class RoomInvitationsService {
 
   findAll() {
     return this.prisma.roomInvitation.findMany({
+      include: {
+        room: true,
+        tenant: {
+          include: { user: { select: { fullName: true, email: true } } },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  findForTenant(userId: number) {
+    return this.prisma.roomInvitation.findMany({
+      where: { tenant: { is: { userId } } },
       include: { room: true },
       orderBy: { createdAt: 'desc' },
     });
@@ -94,39 +107,37 @@ export class RoomInvitationsService {
     });
   }
 
-  async accept(code: string, userId: number) {
-    const invitation = await this.prisma.roomInvitation.findUnique({
-      where: { code: code.trim().toUpperCase() },
-    });
-    if (!invitation) throw new NotFoundException('Invitation was not found');
-    if (invitation.status === 'ACTIVE' && invitation.expiresAt <= new Date()) {
-      await this.prisma.roomInvitation.update({
-        where: { id: invitation.id },
-        data: { status: 'EXPIRED' },
-      });
-      throw new BadRequestException('Invitation has expired');
-    }
-
+  async requestToJoin(code: string, userId: number) {
     try {
       return await this.prisma.$transaction(
         async (tx) => {
-          const currentInvitation = await tx.roomInvitation.findUnique({
-            where: { code: code.trim().toUpperCase() },
-          });
-          if (!currentInvitation)
-            throw new NotFoundException('Invitation was not found');
-          if (currentInvitation.status !== 'ACTIVE') {
-            throw new BadRequestException('Invitation is no longer active');
-          }
-          if (currentInvitation.expiresAt <= new Date()) {
-            throw new BadRequestException('Invitation has expired');
-          }
-
           const tenant = await tx.tenant.findUnique({ where: { userId } });
           if (!tenant) {
             throw new BadRequestException(
-              'A tenant account is required to accept an invitation',
+              'A tenant account is required to request a room',
             );
+          }
+
+          const invitation = await tx.roomInvitation.findUnique({
+            where: { code: code.trim().toUpperCase() },
+            include: { room: true },
+          });
+          if (!invitation)
+            throw new NotFoundException('Invitation was not found');
+          if (
+            invitation.status === 'PENDING' &&
+            invitation.tenantId === tenant.id
+          ) {
+            return invitation;
+          }
+          if (invitation.status !== 'ACTIVE') {
+            throw new ConflictException('Invitation is no longer active');
+          }
+          if (invitation.expiresAt <= new Date()) {
+            throw new BadRequestException('Invitation has expired');
+          }
+          if (invitation.room.status === 'MAINTENANCE') {
+            throw new BadRequestException('Room is under maintenance');
           }
           const existingAssignment = await tx.roomAssignment.findFirst({
             where: { tenantId: tenant.id, status: 'ACTIVE' },
@@ -136,78 +147,171 @@ export class RoomInvitationsService {
               'Tenant already has an active assignment',
             );
           }
-          const room = await tx.room.findUnique({
-            where: { id: currentInvitation.roomId },
-          });
-          if (!room) throw new NotFoundException('Room was not found');
-          if (room.status === 'MAINTENANCE') {
-            throw new BadRequestException('Room is under maintenance');
-          }
           const activeAssignments = await tx.roomAssignment.count({
-            where: { roomId: room.id, status: 'ACTIVE' },
+            where: { roomId: invitation.roomId, status: 'ACTIVE' },
           });
-          if (activeAssignments >= room.capacity) {
+          if (activeAssignments >= invitation.room.capacity) {
             throw new BadRequestException('Room has no available slots');
           }
+          const otherPendingRequest = await tx.roomInvitation.findFirst({
+            where: { tenantId: tenant.id, status: 'PENDING' },
+          });
+          if (otherPendingRequest) {
+            throw new ConflictException(
+              'You already have a pending room request',
+            );
+          }
 
-          const assignment = await tx.roomAssignment.create({
-            data: {
-              tenantId: tenant.id,
-              roomId: room.id,
-              moveInDate: new Date(),
+          const updated = await tx.roomInvitation.updateMany({
+            where: {
+              id: invitation.id,
+              status: 'ACTIVE',
+              tenantId: null,
+              expiresAt: { gt: new Date() },
             },
+            data: { status: 'PENDING', tenantId: tenant.id },
           });
-          await tx.room.update({
-            where: { id: room.id },
-            data: { status: 'OCCUPIED' },
+          if (updated.count !== 1) {
+            throw new ConflictException(
+              'Invitation changed; please refresh and try again',
+            );
+          }
+          return tx.roomInvitation.findUnique({
+            where: { id: invitation.id },
+            include: { room: true },
           });
-          await tx.roomInvitation.update({
-            where: { id: currentInvitation.id },
-            data: { status: 'USED', tenantId: tenant.id },
-          });
-          return { assignment };
         },
         { isolationLevel: 'Serializable' },
       );
     } catch (error) {
-      if (
-        typeof error === 'object' &&
-        error !== null &&
-        'code' in error &&
-        error.code === 'P2034'
-      ) {
+      if (this.isSerializationFailure(error)) {
         throw new ConflictException(
-          'Room availability changed; please try again',
+          'Room availability changed; please retry your request',
         );
       }
       throw error;
     }
   }
 
-  async reject(code: string, userId: number) {
-    const tenant = await this.prisma.tenant.findUnique({ where: { userId } });
-    if (!tenant) {
-      throw new BadRequestException(
-        'A tenant account is required to reject an invitation',
+  async approve(id: number) {
+    try {
+      return await this.prisma.$transaction(
+        async (tx) => {
+          const invitation = await tx.roomInvitation.findUnique({
+            where: { id },
+            include: { room: true, tenant: true },
+          });
+          if (!invitation)
+            throw new NotFoundException('Room request was not found');
+          if (
+            invitation.status !== 'PENDING' ||
+            invitation.tenantId === null ||
+            !invitation.tenant
+          ) {
+            throw new ConflictException(
+              'Only pending room requests can be approved',
+            );
+          }
+          const tenantId = invitation.tenantId;
+          if (invitation.room.status === 'MAINTENANCE') {
+            throw new BadRequestException('Room is under maintenance');
+          }
+
+          const existingAssignment = await tx.roomAssignment.findFirst({
+            where: { tenantId, status: 'ACTIVE' },
+          });
+          if (existingAssignment) {
+            throw new ConflictException(
+              'Tenant already has an active room assignment',
+            );
+          }
+          const activeAssignments = await tx.roomAssignment.count({
+            where: { roomId: invitation.roomId, status: 'ACTIVE' },
+          });
+          if (activeAssignments >= invitation.room.capacity) {
+            throw new BadRequestException('Room has no available slots');
+          }
+
+          const updated = await tx.roomInvitation.updateMany({
+            where: { id, status: 'PENDING', tenantId },
+            data: { status: 'APPROVED' },
+          });
+          if (updated.count !== 1) {
+            throw new ConflictException(
+              'Room request has already been processed',
+            );
+          }
+
+          const assignment = await tx.roomAssignment.create({
+            data: {
+              tenantId,
+              roomId: invitation.roomId,
+              moveInDate: new Date(),
+            },
+          });
+          await tx.room.update({
+            where: { id: invitation.roomId },
+            data: { status: 'OCCUPIED' },
+          });
+
+          const approvedInvitation = await tx.roomInvitation.findUnique({
+            where: { id },
+            include: {
+              room: true,
+              tenant: {
+                include: { user: { select: { fullName: true, email: true } } },
+              },
+            },
+          });
+          return { invitation: approvedInvitation, assignment };
+        },
+        { isolationLevel: 'Serializable' },
       );
+    } catch (error) {
+      if (this.isSerializationFailure(error)) {
+        throw new ConflictException(
+          'Room availability changed; request was not approved',
+        );
+      }
+      throw error;
     }
-    const invitation = await this.prisma.roomInvitation.findUnique({
-      where: { code: code.trim().toUpperCase() },
-    });
-    if (!invitation) throw new NotFoundException('Invitation was not found');
-    if (invitation.status !== 'ACTIVE') {
-      throw new BadRequestException('Invitation is no longer active');
-    }
-    if (invitation.expiresAt <= new Date()) {
-      await this.prisma.roomInvitation.update({
-        where: { id: invitation.id },
-        data: { status: 'EXPIRED' },
+  }
+
+  async reject(id: number) {
+    return this.prisma.$transaction(async (tx) => {
+      const invitation = await tx.roomInvitation.findUnique({
+        where: { id },
       });
-      throw new BadRequestException('Invitation has expired');
-    }
-    return this.prisma.roomInvitation.update({
-      where: { id: invitation.id },
-      data: { status: 'REJECTED', tenantId: tenant.id },
+      if (!invitation)
+        throw new NotFoundException('Room request was not found');
+      if (invitation.status !== 'PENDING' || invitation.tenantId === null) {
+        throw new ConflictException(
+          'Only pending room requests can be rejected',
+        );
+      }
+
+      const updated = await tx.roomInvitation.updateMany({
+        where: { id, status: 'PENDING', tenantId: invitation.tenantId },
+        data: { status: 'REJECTED' },
+      });
+      if (updated.count !== 1) {
+        throw new ConflictException(
+          'Room request has already been processed',
+        );
+      }
+      return tx.roomInvitation.findUnique({
+        where: { id },
+        include: { room: true },
+      });
     });
+  }
+
+  private isSerializationFailure(error: unknown): boolean {
+    return (
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      error.code === 'P2034'
+    );
   }
 }

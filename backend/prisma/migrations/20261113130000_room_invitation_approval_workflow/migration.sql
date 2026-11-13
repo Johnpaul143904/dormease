@@ -1,0 +1,2 @@
+ALTER TYPE "InvitationStatus" ADD VALUE 'PENDING';
+ALTER TYPE "InvitationStatus" ADD VALUE 'APPROVED';

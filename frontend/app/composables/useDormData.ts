@@ -38,10 +38,13 @@ interface ApiTenant {
 interface ApiInvitation {
   id: number;
   roomId: number;
+  tenantId?: number | null;
   code: string;
   createdAt: string;
   expiresAt: string;
-  status: string;
+  status: RoomInvitation["status"];
+  room?: { roomNumber: string; building: string };
+  tenant?: { user: { fullName: string; email: string } } | null;
 }
 
 interface ApiInvitationLookup {
@@ -114,20 +117,18 @@ function mapInvitationRoom(room: ApiInvitationLookup["room"]): Room {
 }
 
 function mapInvitation(invitation: ApiInvitation): RoomInvitation {
-  const status =
-    invitation.status === "USED" ||
-    invitation.status === "EXPIRED" ||
-    invitation.status === "REVOKED" ||
-    invitation.status === "REJECTED"
-      ? invitation.status
-      : "ACTIVE";
   return {
     id: invitation.id,
     roomId: invitation.roomId,
+    tenantId: invitation.tenantId ?? null,
     code: invitation.code,
     createdDate: invitation.createdAt.slice(0, 10),
     expirationDate: invitation.expiresAt.slice(0, 10),
-    status,
+    status: invitation.status,
+    tenantName: invitation.tenant?.user.fullName ?? null,
+    tenantEmail: invitation.tenant?.user.email ?? null,
+    roomNumber: invitation.room?.roomNumber ?? null,
+    building: invitation.room?.building ?? null,
   };
 }
 
@@ -136,6 +137,10 @@ export function useDormData() {
   const tenants = useState<Tenant[]>("dorm-tenants", () => []);
   const assignments = useState<RoomAssignment[]>("dorm-assignments", () => []);
   const invitations = useState<RoomInvitation[]>("dorm-invitations", () => []);
+  const myRoomRequests = useState<RoomInvitation[]>(
+    "dorm-my-room-requests",
+    () => [],
+  );
   const currentTenantId = useState<number | null>(
     "current-tenant-id",
     () => null,
@@ -325,6 +330,11 @@ export function useDormData() {
     invitations.value = items.map(mapInvitation);
   }
 
+  async function loadMyRoomRequests() {
+    const items = await api.request<ApiInvitation[]>("/room-invitations/me");
+    myRoomRequests.value = items.map(mapInvitation);
+  }
+
   async function createInvitation(roomId: number) {
     const invitation = await api.request<ApiInvitation>("/room-invitations", {
       method: "POST",
@@ -339,6 +349,25 @@ export function useDormData() {
     if (invitation) invitation.status = "REVOKED";
   }
 
+  async function submitJoinRequest(code: string) {
+    return api.request<ApiInvitation>(
+      `/room-invitations/${encodeURIComponent(code.trim())}/request`,
+      { method: "POST" },
+    );
+  }
+
+  async function approveInvitation(id: number) {
+    await api.request(`/room-invitations/${id}/approve`, { method: "POST" });
+    const invitation = invitations.value.find((item) => item.id === id);
+    if (invitation) invitation.status = "APPROVED";
+  }
+
+  async function rejectInvitation(id: number) {
+    await api.request(`/room-invitations/${id}/reject`, { method: "POST" });
+    const invitation = invitations.value.find((item) => item.id === id);
+    if (invitation) invitation.status = "REJECTED";
+  }
+
   async function joinWithInvitation(code: string) {
     try {
       const invitation = await api.request<ApiInvitationLookup>(
@@ -347,6 +376,8 @@ export function useDormData() {
       if (invitation.status !== "ACTIVE") {
         const messages: Record<RoomInvitation["status"], string> = {
           ACTIVE: "",
+          PENDING: "Your room request is waiting for Admin approval.",
+          APPROVED: "This room request was approved.",
           EXPIRED: "This invitation has expired.",
           REVOKED: "This invitation is no longer available.",
           USED: "This invitation has already been accepted.",
@@ -382,36 +413,19 @@ export function useDormData() {
     }
   }
 
-  async function acceptInvitation(code: string) {
-    await api.request(
-      `/room-invitations/${encodeURIComponent(code.trim())}/accept`,
-      {
-        method: "POST",
-      },
-    );
-    await loadTenantData();
-  }
-
-  async function rejectInvitation(code: string) {
-    await api.request(
-      `/room-invitations/${encodeURIComponent(code.trim())}/reject`,
-      {
-        method: "POST",
-      },
-    );
-  }
-
   return {
     rooms,
     tenants,
     assignments,
     invitations,
+    myRoomRequests,
     currentTenantId,
     loading,
     error,
     loadFromApi,
     loadTenantData,
     loadInvitations,
+    loadMyRoomRequests,
     createRoom,
     updateRoom,
     deleteRoom,
@@ -423,7 +437,8 @@ export function useDormData() {
     createInvitation,
     revokeInvitation,
     joinWithInvitation,
-    acceptInvitation,
+    submitJoinRequest,
+    approveInvitation,
     rejectInvitation,
   };
 }

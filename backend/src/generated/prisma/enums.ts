@@ -84,7 +84,9 @@ export const InvitationStatus = {
   USED: 'USED',
   EXPIRED: 'EXPIRED',
   REVOKED: 'REVOKED',
-  REJECTED: 'REJECTED'
+  REJECTED: 'REJECTED',
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED'
 } as const
 
 export type InvitationStatus = (typeof InvitationStatus)[keyof typeof InvitationStatus]

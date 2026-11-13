@@ -9,7 +9,7 @@ const result = ref<Awaited<ReturnType<typeof data.joinWithInvitation>> | null>(
   null,
 );
 const isLoading = ref(true);
-const isAccepting = ref(false);
+const isSubmitting = ref(false);
 const notice = ref("");
 
 definePageMeta({ layout: "auth" });
@@ -27,7 +27,7 @@ onMounted(async () => {
   isLoading.value = false;
 });
 
-async function continueInvitation() {
+async function requestToJoin() {
   if (!result.value?.ok) return;
   if (!auth.isAuthenticated.value || !auth.role.value) {
     await navigateTo({
@@ -37,21 +37,29 @@ async function continueInvitation() {
     return;
   }
   if (auth.role.value !== "TENANT") {
-    notice.value = "Sign in with a tenant account to accept this invitation.";
+    notice.value = "Sign in with a tenant account to request this room.";
     return;
   }
 
-  isAccepting.value = true;
+  isSubmitting.value = true;
   notice.value = "";
   try {
-    await data.acceptInvitation(result.value.code);
-    notice.value = "Invitation accepted. You have joined the room.";
+    await data.submitJoinRequest(result.value.code);
+    result.value = {
+      ok: false,
+      status: "PENDING",
+      message: "Your room request is waiting for Admin approval.",
+    };
+    notice.value =
+      "Request submitted. The room will be assigned only after Admin approval.";
+    await data.loadMyRoomRequests().catch(() => {
+      notice.value += " Your request was sent, but its status could not be refreshed.";
+    });
   } catch (error) {
     notice.value =
-      error instanceof Error ? error.message : "Unable to accept invitation.";
-    result.value = await data.joinWithInvitation(code.value);
+      error instanceof Error ? error.message : "Unable to submit your request.";
   } finally {
-    isAccepting.value = false;
+    isSubmitting.value = false;
   }
 }
 </script>
@@ -66,7 +74,7 @@ async function continueInvitation() {
         Room invitation
       </h1>
       <p class="mt-2 text-sm text-slate-600">
-        Review the room details before choosing whether to join.
+        Review the room details and request Admin approval to join.
       </p>
 
       <div
@@ -76,15 +84,11 @@ async function continueInvitation() {
       >
         Checking invitation…
       </div>
-      <div
-        v-else-if="!result?.ok"
-        class="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-5 text-amber-900"
-        role="status"
-      >
-        {{ result?.message || "Invalid invitation link." }}
-      </div>
       <template v-else>
-        <div class="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-5">
+        <div
+          v-if="result?.ok"
+          class="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-5"
+        >
           <p class="text-sm font-semibold text-emerald-800">
             Active invitation · {{ result.status }}
           </p>
@@ -104,6 +108,13 @@ async function continueInvitation() {
             Expires {{ new Date(result.expiresAt).toLocaleDateString() }}
           </p>
         </div>
+        <div
+          v-else
+          class="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-5 text-amber-900"
+          role="status"
+        >
+          {{ result?.message || "Invalid invitation link." }}
+        </div>
 
         <p
           v-if="notice"
@@ -112,25 +123,25 @@ async function continueInvitation() {
         >
           {{ notice }}
         </p>
-        <button
-          v-if="notice.startsWith('Invitation accepted')"
-          class="mt-5 w-full rounded-xl bg-brand-600 px-4 py-3 font-semibold text-white"
-          @click="navigateTo('/tenant/dashboard')"
+        <NuxtLink
+          v-if="notice.startsWith('Request submitted')"
+          to="/tenant/join-room"
+          class="mt-5 block w-full rounded-xl bg-brand-600 px-4 py-3 text-center font-semibold text-white"
         >
-          Go to tenant dashboard
-        </button>
+          View request status
+        </NuxtLink>
         <button
-          v-else
+          v-else-if="result?.ok"
           class="mt-5 w-full rounded-xl bg-brand-600 px-4 py-3 font-semibold text-white disabled:opacity-60"
-          :disabled="isAccepting"
-          @click="continueInvitation"
+          :disabled="isSubmitting"
+          @click="requestToJoin"
         >
           {{
-            isAccepting
-              ? "Accepting…"
+            isSubmitting
+              ? "Submitting…"
               : auth.isAuthenticated.value && auth.role.value === "TENANT"
-                ? "Accept invitation"
-                : "Sign in to continue"
+                ? "Request to join room"
+                : "Sign in to request"
           }}
         </button>
       </template>

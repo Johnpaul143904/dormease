@@ -3,16 +3,31 @@ import AdminShell from "~/components/layout/AdminShell.vue";
 import StatCard from "~/components/ui/StatCard.vue";
 import StatusBadge from "~/components/ui/StatusBadge.vue";
 
-const { rooms, tenants, assignments } = useDormData();
 const dormData = useDormData();
+const { rooms, tenants, assignments } = dormData;
 const operations = useOperations();
+const auth = useDormEaseAuth();
+const invitationNotice = ref("");
+const invitationActionId = ref<number | null>(null);
 onMounted(() => {
   void dormData.loadFromApi();
   void operations.loadFromApi();
+  if (auth.role.value === "ADMIN") {
+    void dormData.loadInvitations().catch((error: unknown) => {
+      invitationNotice.value =
+        error instanceof Error ? error.message : "Unable to load room requests.";
+    });
+  }
 });
 const payments = operations.payments;
 const maintenance = operations.maintenance;
-const auth = useDormEaseAuth();
+const roomJoinRequests = computed(() =>
+  dormData.invitations.value.filter(
+    (invitation) =>
+      invitation.tenantId !== null &&
+      ["PENDING", "APPROVED", "REJECTED", "USED"].includes(invitation.status),
+  ),
+);
 const stats = computed(() => [
   {
     label: "Total rooms",
@@ -124,6 +139,62 @@ const activity = computed(() =>
 const tenantName = (id: number) =>
   tenants.value.find((tenant) => tenant.id === id)?.fullName ||
   "Tenant unavailable";
+
+async function reviewRoomRequest(id: number, decision: "approve" | "reject") {
+  const invitation = dormData.invitations.value.find((item) => item.id === id);
+  if (!invitation || invitation.status !== "PENDING") return;
+  const action = decision === "approve" ? "approve" : "reject";
+  if (
+    !window.confirm(
+      `Are you sure you want to ${action} ${invitation.tenantName || "this tenant"}'s request for room ${invitation.roomNumber || invitation.roomId}?`,
+    )
+  ) {
+    return;
+  }
+
+  invitationActionId.value = id;
+  invitationNotice.value = "";
+  let actionSucceeded = false;
+  try {
+    if (decision === "approve") {
+      await dormData.approveInvitation(id);
+    } else {
+      await dormData.rejectInvitation(id);
+    }
+    actionSucceeded = true;
+    invitationNotice.value = `Room request ${decision === "approve" ? "approved" : "rejected"}.`;
+  } catch (error) {
+    invitationNotice.value =
+      error instanceof Error
+        ? error.message
+        : `Unable to ${action} the room request.`;
+  } finally {
+    invitationActionId.value = null;
+    try {
+      await dormData.loadInvitations();
+    } catch (error) {
+      if (actionSucceeded) {
+        invitationNotice.value +=
+          " The request was updated, but the list could not be refreshed.";
+      } else if (!invitationNotice.value) {
+        invitationNotice.value =
+          error instanceof Error
+            ? error.message
+            : "Unable to refresh room requests.";
+      }
+    }
+  }
+}
+
+async function refreshRoomRequests() {
+  try {
+    await dormData.loadInvitations();
+    invitationNotice.value = "";
+  } catch (error) {
+    invitationNotice.value =
+      error instanceof Error ? error.message : "Unable to refresh room requests.";
+  }
+}
 </script>
 
 <template>
@@ -147,6 +218,121 @@ const tenantName = (id: number) =>
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard v-for="stat in stats" :key="stat.label" v-bind="stat" />
       </div>
+
+      <section
+        v-if="auth.role.value === 'ADMIN'"
+        class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+      >
+        <div
+          class="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6"
+        >
+          <div>
+            <h3 class="font-bold">Room join requests</h3>
+            <p class="mt-1 text-sm text-slate-500">
+              Review pending requests; processed requests remain visible here.
+            </p>
+          </div>
+          <button
+            type="button"
+            class="self-start rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 sm:self-auto"
+            @click="refreshRoomRequests"
+          >
+            Refresh
+          </button>
+        </div>
+        <p
+          v-if="invitationNotice"
+          class="mx-5 mt-4 rounded-lg bg-blue-50 p-3 text-sm text-blue-800 sm:mx-6"
+          role="status"
+        >
+          {{ invitationNotice }}
+        </p>
+        <div class="max-w-full overflow-x-auto">
+          <table class="w-full min-w-[900px] text-left text-sm">
+            <thead
+              class="bg-slate-50 text-xs uppercase tracking-wider text-slate-500"
+            >
+              <tr>
+                <th class="px-5 py-3">Tenant</th>
+                <th class="px-5 py-3">Requested room</th>
+                <th class="px-5 py-3">Invitation code</th>
+                <th class="px-5 py-3">Request date</th>
+                <th class="px-5 py-3">Status</th>
+                <th class="px-5 py-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <tr
+                v-for="request in roomJoinRequests"
+                :key="request.id"
+                class="align-top"
+              >
+                <td class="px-5 py-4">
+                  <p class="font-semibold">
+                    {{ request.tenantName || "Tenant unavailable" }}
+                  </p>
+                  <p class="text-xs text-slate-500">
+                    {{ request.tenantEmail || "Email unavailable" }}
+                  </p>
+                </td>
+                <td class="px-5 py-4">
+                  {{ request.roomNumber || `Room ${request.roomId}` }}
+                  <span v-if="request.building" class="text-slate-500">
+                    · {{ request.building }}
+                  </span>
+                </td>
+                <td class="px-5 py-4 font-mono">{{ request.code }}</td>
+                <td class="px-5 py-4 text-slate-500">
+                  {{ request.createdDate }}
+                </td>
+                <td class="px-5 py-4">
+                  <span
+                    class="rounded-full px-2.5 py-1 text-xs font-semibold"
+                    :class="
+                      request.status === 'PENDING'
+                        ? 'bg-amber-50 text-amber-700'
+                        : request.status === 'APPROVED' || request.status === 'USED'
+                          ? 'bg-emerald-50 text-emerald-700'
+                          : 'bg-rose-50 text-rose-700'
+                    "
+                  >
+                    {{ request.status }}
+                  </span>
+                </td>
+                <td class="px-5 py-4">
+                  <div
+                    v-if="request.status === 'PENDING'"
+                    class="flex gap-2"
+                  >
+                    <button
+                      type="button"
+                      class="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"
+                      :disabled="invitationActionId === request.id"
+                      @click="reviewRoomRequest(request.id, 'approve')"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      type="button"
+                      class="rounded-lg border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-700 disabled:opacity-50"
+                      :disabled="invitationActionId === request.id"
+                      @click="reviewRoomRequest(request.id, 'reject')"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                  <span v-else class="text-xs text-slate-400">Processed</span>
+                </td>
+              </tr>
+              <tr v-if="!roomJoinRequests.length">
+                <td colspan="6" class="p-8 text-center text-slate-500">
+                  No room join requests yet.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       <div
         class="grid gap-5 lg:grid-cols-[minmax(0,1.7fr)_minmax(280px,0.8fr)]"

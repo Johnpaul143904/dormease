@@ -119,7 +119,7 @@ function saveQr() {
       <div>
         <h2 class="text-2xl font-bold">Room invitations</h2>
         <p class="mt-1 text-sm text-slate-500">
-          Create shareable codes for tenants to reserve an available room.
+          Create shareable codes that tenants can use to request a room.
         </p>
       </div>
       <div class="grid gap-6 lg:grid-cols-[1fr_1.5fr]">
@@ -128,8 +128,8 @@ function saveQr() {
         >
           <h3 class="font-bold">Generate invitation</h3>
           <p class="mt-2 text-sm text-slate-500">
-            Codes expire after seven days and create an assignment only after
-            tenant confirmation.
+            Codes expire after seven days. Tenant requests remain pending until
+            an Admin approves them.
           </p>
           <select
             v-model="selectedRoom"
@@ -247,7 +247,8 @@ function saveQr() {
               Room Invitation QR Code
             </h2>
             <p class="mt-1 text-sm text-slate-500">
-              Scan to review this invitation. Acceptance requires signing in.
+              Scan to request this room. Tenants must sign in, and an Admin must
+              approve the request.
             </p>
           </div>
           <button
