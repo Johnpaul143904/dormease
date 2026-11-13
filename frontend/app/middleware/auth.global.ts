@@ -19,7 +19,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
       "/forgot-password",
       "/reset-password",
       "/auth/complete",
-    ].includes(to.path)
+    ].includes(to.path) ||
+    to.path.startsWith("/register/")
   ) {
     return;
   }
