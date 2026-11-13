@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AdminShell from "~/components/layout/AdminShell.vue";
 import GlobalSearchResults from "~/components/layout/GlobalSearchResults.vue";
+import PaymentProofActions from "~/components/payments/PaymentProofActions.vue";
 import StatCard from "~/components/ui/StatCard.vue";
 import StatusBadge from "~/components/ui/StatusBadge.vue";
 import type {
@@ -21,6 +22,8 @@ onMounted(() => {
       error instanceof Error
         ? error.message
         : "Unable to load payment verification submissions.";
+  }).finally(() => {
+    isLoadingSubmissions.value = false;
   });
 });
 const search = ref("");
@@ -37,13 +40,10 @@ const showForm = ref(false);
 const notice = ref("");
 const saving = ref(false);
 const verificationFilter = ref<"ALL" | PaymentSubmissionStatus>("PENDING");
+const isLoadingSubmissions = ref(true);
 const verificationBusyId = ref<number | null>(null);
 const rejectionSubmission = ref<PaymentSubmission | null>(null);
 const rejectionRemarks = ref("");
-const proofPreviewUrl = ref("");
-const proofPreviewType = ref("");
-const proofPreviewName = ref("");
-const proofPreviewSubmissionId = ref<number | null>(null);
 const filteredSubmissions = computed(() =>
   operations.paymentSubmissions.value.filter(
     (submission) =>
@@ -135,37 +135,6 @@ async function createPayment() {
   }
 }
 
-async function loadProof(
-  submission: PaymentSubmission,
-  download = false,
-) {
-  notice.value = "";
-  try {
-    const api = useApi();
-    const blob = await api.request<Blob>(
-      `/payments/submissions/${submission.id}/proof`,
-      { responseType: "blob" },
-    );
-    const objectUrl = URL.createObjectURL(blob);
-    if (download) {
-      const link = document.createElement("a");
-      link.href = objectUrl;
-      link.download = submission.proofFileName;
-      link.click();
-      URL.revokeObjectURL(objectUrl);
-      return;
-    }
-    if (proofPreviewUrl.value) URL.revokeObjectURL(proofPreviewUrl.value);
-    proofPreviewUrl.value = objectUrl;
-    proofPreviewType.value = submission.proofMimeType;
-    proofPreviewName.value = submission.proofFileName;
-    proofPreviewSubmissionId.value = submission.id;
-  } catch (error) {
-    notice.value =
-      error instanceof Error ? error.message : "Unable to open receipt.";
-  }
-}
-
 async function verifySubmission(
   submission: PaymentSubmission,
   status: Extract<PaymentSubmissionStatus, "APPROVED" | "REJECTED">,
@@ -193,14 +162,6 @@ function openRejectForm(submission: PaymentSubmission) {
   rejectionSubmission.value = submission;
   rejectionRemarks.value = "";
 }
-
-function closeProofPreview() {
-  if (proofPreviewUrl.value) URL.revokeObjectURL(proofPreviewUrl.value);
-  proofPreviewUrl.value = "";
-  proofPreviewSubmissionId.value = null;
-}
-
-onBeforeUnmount(closeProofPreview);
 
 function printPaymentRecord() {
   if (!selected.value) return;
@@ -318,7 +279,7 @@ function printPaymentRecord() {
             <option>CANCELLED</option>
           </select>
         </div>
-        <div class="overflow-x-auto">
+        <div class="max-w-full overflow-x-auto">
           <table class="w-full min-w-[800px] text-left text-sm">
             <thead
               class="bg-slate-50 text-xs uppercase tracking-wider text-slate-500"
@@ -401,7 +362,14 @@ function printPaymentRecord() {
           </label>
         </div>
         <div
-          v-if="!filteredSubmissions.length"
+          v-if="isLoadingSubmissions"
+          role="status"
+          class="p-10 text-center text-sm text-slate-500"
+        >
+          Loading payment submissions…
+        </div>
+        <div
+          v-else-if="!filteredSubmissions.length"
           class="p-10 text-center text-sm text-slate-500"
         >
           No payment submissions match this filter.
@@ -493,18 +461,7 @@ function printPaymentRecord() {
                     </li>
                   </ul>
                 </details>
-                <button
-                  class="mt-3 mr-3 text-sm font-semibold text-brand-700 underline"
-                  @click="loadProof(submission)"
-                >
-                  Preview receipt
-                </button>
-                <button
-                  class="mt-3 text-sm font-semibold text-brand-700 underline"
-                  @click="loadProof(submission, true)"
-                >
-                  Download receipt
-                </button>
+                <PaymentProofActions :submission="submission" class="mt-3" />
               </div>
             </div>
             <div
@@ -531,10 +488,10 @@ function printPaymentRecord() {
       </section>
       <div
         v-if="selected"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
+        class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-950/50 p-4 sm:items-center"
         @click.self="selected = null"
       >
-        <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+        <div class="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-4 shadow-2xl sm:p-6">
           <div class="flex justify-between">
             <div>
               <p class="text-sm text-brand-600">Payment details</p>
@@ -586,11 +543,11 @@ function printPaymentRecord() {
       </div>
       <div
         v-if="showForm"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
+        class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-950/50 p-4 sm:items-center"
         @click.self="showForm = false"
       >
         <form
-          class="max-h-[90vh] w-full max-w-xl space-y-4 overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl"
+          class="max-h-[calc(100dvh-2rem)] w-full max-w-xl space-y-4 overflow-y-auto rounded-2xl bg-white p-4 shadow-2xl sm:p-6"
           @submit.prevent="createPayment"
         >
           <div class="flex items-start justify-between">
@@ -688,11 +645,11 @@ function printPaymentRecord() {
       </div>
       <div
         v-if="rejectionSubmission"
-        class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/50 p-4"
+        class="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-slate-950/50 p-4 sm:items-center"
         @click.self="rejectionSubmission = null"
       >
         <form
-          class="w-full max-w-lg space-y-4 rounded-2xl bg-white p-6 shadow-2xl"
+          class="max-h-[calc(100dvh-2rem)] w-full max-w-lg space-y-4 overflow-y-auto rounded-2xl bg-white p-4 shadow-2xl sm:p-6"
           @submit.prevent="
             verifySubmission(
               rejectionSubmission!,
@@ -735,37 +692,6 @@ function printPaymentRecord() {
             </button>
           </div>
         </form>
-      </div>
-      <div
-        v-if="proofPreviewUrl"
-        class="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 p-4"
-        @click.self="closeProofPreview"
-      >
-        <section
-          class="flex max-h-[92vh] w-full max-w-4xl flex-col rounded-2xl bg-white p-5 shadow-2xl"
-        >
-          <div class="flex items-center justify-between gap-4">
-            <h3 class="truncate font-semibold">{{ proofPreviewName }}</h3>
-            <button
-              class="rounded-lg px-3 py-1 text-slate-500 hover:bg-slate-100"
-              @click="closeProofPreview"
-            >
-              Close
-            </button>
-          </div>
-          <img
-            v-if="proofPreviewType.startsWith('image/')"
-            :src="proofPreviewUrl"
-            :alt="`Receipt preview ${proofPreviewSubmissionId}`"
-            class="mt-4 max-h-[78vh] w-full rounded-lg object-contain"
-          />
-          <iframe
-            v-else
-            :src="proofPreviewUrl"
-            title="Payment proof PDF preview"
-            class="mt-4 min-h-[70vh] w-full rounded-lg border"
-          />
-        </section>
       </div>
     </div>
   </AdminShell>

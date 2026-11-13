@@ -404,6 +404,7 @@ export const ModelName = {
   RoomAssignment: 'RoomAssignment',
   Payment: 'Payment',
   PaymentSubmission: 'PaymentSubmission',
+  CloudinaryReceiptDeletion: 'CloudinaryReceiptDeletion',
   PaymentVerificationHistory: 'PaymentVerificationHistory',
   MaintenanceRequest: 'MaintenanceRequest',
   MaintenanceStatusHistory: 'MaintenanceStatusHistory',
@@ -424,7 +425,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "passwordResetToken" | "room" | "tenant" | "roomAssignment" | "payment" | "paymentSubmission" | "paymentVerificationHistory" | "maintenanceRequest" | "maintenanceStatusHistory" | "notificationLog" | "roomInvitation"
+    modelProps: "user" | "passwordResetToken" | "room" | "tenant" | "roomAssignment" | "payment" | "paymentSubmission" | "cloudinaryReceiptDeletion" | "paymentVerificationHistory" | "maintenanceRequest" | "maintenanceStatusHistory" | "notificationLog" | "roomInvitation"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -946,6 +947,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    CloudinaryReceiptDeletion: {
+      payload: Prisma.$CloudinaryReceiptDeletionPayload<ExtArgs>
+      fields: Prisma.CloudinaryReceiptDeletionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CloudinaryReceiptDeletionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CloudinaryReceiptDeletionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CloudinaryReceiptDeletionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CloudinaryReceiptDeletionPayload>
+        }
+        findFirst: {
+          args: Prisma.CloudinaryReceiptDeletionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CloudinaryReceiptDeletionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CloudinaryReceiptDeletionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CloudinaryReceiptDeletionPayload>
+        }
+        findMany: {
+          args: Prisma.CloudinaryReceiptDeletionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CloudinaryReceiptDeletionPayload>[]
+        }
+        create: {
+          args: Prisma.CloudinaryReceiptDeletionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CloudinaryReceiptDeletionPayload>
+        }
+        createMany: {
+          args: Prisma.CloudinaryReceiptDeletionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CloudinaryReceiptDeletionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CloudinaryReceiptDeletionPayload>[]
+        }
+        delete: {
+          args: Prisma.CloudinaryReceiptDeletionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CloudinaryReceiptDeletionPayload>
+        }
+        update: {
+          args: Prisma.CloudinaryReceiptDeletionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CloudinaryReceiptDeletionPayload>
+        }
+        deleteMany: {
+          args: Prisma.CloudinaryReceiptDeletionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CloudinaryReceiptDeletionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CloudinaryReceiptDeletionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CloudinaryReceiptDeletionPayload>[]
+        }
+        upsert: {
+          args: Prisma.CloudinaryReceiptDeletionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CloudinaryReceiptDeletionPayload>
+        }
+        aggregate: {
+          args: Prisma.CloudinaryReceiptDeletionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCloudinaryReceiptDeletion>
+        }
+        groupBy: {
+          args: Prisma.CloudinaryReceiptDeletionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CloudinaryReceiptDeletionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CloudinaryReceiptDeletionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CloudinaryReceiptDeletionCountAggregateOutputType> | number
+        }
+      }
+    }
     PaymentVerificationHistory: {
       payload: Prisma.$PaymentVerificationHistoryPayload<ExtArgs>
       fields: Prisma.PaymentVerificationHistoryFieldRefs
@@ -1453,6 +1528,11 @@ export const PaymentSubmissionScalarFieldEnum = {
   proofMimeType: 'proofMimeType',
   proofSize: 'proofSize',
   proofData: 'proofData',
+  cloudinaryAssetId: 'cloudinaryAssetId',
+  cloudinaryPublicId: 'cloudinaryPublicId',
+  cloudinarySecureUrl: 'cloudinarySecureUrl',
+  cloudinaryResourceType: 'cloudinaryResourceType',
+  cloudinaryFormat: 'cloudinaryFormat',
   status: 'status',
   rejectionRemarks: 'rejectionRemarks',
   verifiedAt: 'verifiedAt',
@@ -1461,6 +1541,19 @@ export const PaymentSubmissionScalarFieldEnum = {
 } as const
 
 export type PaymentSubmissionScalarFieldEnum = (typeof PaymentSubmissionScalarFieldEnum)[keyof typeof PaymentSubmissionScalarFieldEnum]
+
+
+export const CloudinaryReceiptDeletionScalarFieldEnum = {
+  assetId: 'assetId',
+  publicId: 'publicId',
+  resourceType: 'resourceType',
+  attempts: 'attempts',
+  nextAttemptAt: 'nextAttemptAt',
+  lastError: 'lastError',
+  createdAt: 'createdAt'
+} as const
+
+export type CloudinaryReceiptDeletionScalarFieldEnum = (typeof CloudinaryReceiptDeletionScalarFieldEnum)[keyof typeof CloudinaryReceiptDeletionScalarFieldEnum]
 
 
 export const PaymentVerificationHistoryScalarFieldEnum = {
@@ -1924,6 +2017,7 @@ export type GlobalOmitConfig = {
   roomAssignment?: Prisma.RoomAssignmentOmit
   payment?: Prisma.PaymentOmit
   paymentSubmission?: Prisma.PaymentSubmissionOmit
+  cloudinaryReceiptDeletion?: Prisma.CloudinaryReceiptDeletionOmit
   paymentVerificationHistory?: Prisma.PaymentVerificationHistoryOmit
   maintenanceRequest?: Prisma.MaintenanceRequestOmit
   maintenanceStatusHistory?: Prisma.MaintenanceStatusHistoryOmit

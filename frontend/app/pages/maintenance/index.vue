@@ -315,11 +315,11 @@ onMounted(() => {
 
       <div
         v-if="approvingId !== null"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
+        class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-950/50 p-4 sm:items-center"
         @click.self="approvingId = null"
       >
         <form
-          class="max-h-[90vh] w-full max-w-xl space-y-4 overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl"
+          class="max-h-[calc(100dvh-2rem)] w-full max-w-xl space-y-4 overflow-y-auto rounded-2xl bg-white p-4 shadow-2xl sm:p-6"
           @submit.prevent="approveRequest"
         >
           <div class="flex items-start justify-between">
@@ -361,10 +361,10 @@ onMounted(() => {
               placeholder="Use a general area; do not enter a tenant's room number."
             />
           </label>
-          <div class="flex justify-end gap-3">
+          <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <button
               type="button"
-              class="rounded-xl px-4 py-2.5 font-semibold text-slate-600"
+              class="w-full rounded-xl px-4 py-2.5 font-semibold text-slate-600 sm:w-auto"
               @click="approvingId = null"
             >
               Cancel
@@ -372,7 +372,7 @@ onMounted(() => {
             <button
               type="submit"
               :disabled="isSaving"
-              class="rounded-xl bg-brand-600 px-4 py-2.5 font-semibold text-white disabled:opacity-60"
+              class="w-full rounded-xl bg-brand-600 px-4 py-2.5 font-semibold text-white disabled:opacity-60 sm:w-auto"
             >
               {{ isSaving ? "Approving…" : "Approve & publish" }}
             </button>
@@ -382,10 +382,10 @@ onMounted(() => {
 
       <div
         v-if="selected"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
+        class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-950/50 p-4 sm:items-center"
         @click.self="selectedId = null"
       >
-        <section class="max-h-[90vh] w-full max-w-2xl space-y-5 overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
+        <section class="max-h-[calc(100dvh-2rem)] w-full max-w-2xl space-y-5 overflow-y-auto rounded-2xl bg-white p-4 shadow-2xl sm:p-6">
           <div class="flex justify-between gap-4">
             <div>
               <p class="text-sm text-brand-600">Private request details</p>

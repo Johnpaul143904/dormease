@@ -3,6 +3,8 @@ import { PaymentsService } from './payments.service';
 import { PrismaService } from '../prisma/prisma.service';
 import type { PaymentProofFile } from './payment-proof-file.type';
 import { UserRole } from '../generated/prisma/enums';
+import { CloudinaryReceiptCleanupService } from '../cloudinary/cloudinary-receipt-cleanup.service';
+import { CloudinaryReceiptStorageService } from '../cloudinary/cloudinary-receipt-storage.service';
 
 describe('PaymentsService', () => {
   let service: PaymentsService;
@@ -38,6 +40,23 @@ describe('PaymentsService', () => {
       callback(transactionMock),
     ),
   };
+  const receiptAsset = {
+    assetId: 'receipt-asset-30',
+    publicId: 'dormease/payment-receipts/receipt-asset-30',
+    secureUrl:
+      'https://res.cloudinary.com/example/image/authenticated/receipt-asset-30.png',
+    resourceType: 'image' as const,
+    format: 'png',
+  };
+  const receiptStorageMock = {
+    upload: jest.fn(),
+    download: jest.fn(),
+    delete: jest.fn(),
+  };
+  const receiptCleanupMock = {
+    enqueue: jest.fn(),
+    processPending: jest.fn(),
+  };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -48,6 +67,11 @@ describe('PaymentsService', () => {
     transactionMock.paymentSubmission.findUniqueOrThrow.mockReset();
     transactionMock.paymentSubmission.updateMany.mockReset();
     transactionMock.paymentVerificationHistory.create.mockReset();
+    receiptStorageMock.upload.mockReset().mockResolvedValue(receiptAsset);
+    receiptStorageMock.download.mockReset();
+    receiptStorageMock.delete.mockReset().mockResolvedValue(undefined);
+    receiptCleanupMock.enqueue.mockReset().mockResolvedValue(undefined);
+    receiptCleanupMock.processPending.mockReset().mockResolvedValue(undefined);
     prismaMock.$transaction.mockImplementation(
       (callback: (tx: typeof transactionMock) => unknown) => callback(transactionMock),
     );
@@ -55,6 +79,14 @@ describe('PaymentsService', () => {
       providers: [
         PaymentsService,
         { provide: PrismaService, useValue: prismaMock },
+        {
+          provide: CloudinaryReceiptStorageService,
+          useValue: receiptStorageMock,
+        },
+        {
+          provide: CloudinaryReceiptCleanupService,
+          useValue: receiptCleanupMock,
+        },
       ],
     }).compile();
 
@@ -138,7 +170,7 @@ describe('PaymentsService', () => {
     );
   });
 
-  it('stores a valid tenant proof without changing the bill before verification', async () => {
+  it('stores a valid tenant proof in Cloudinary without changing the bill before verification', async () => {
     const proofData = Buffer.from([
       0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
     ]);
@@ -187,15 +219,132 @@ describe('PaymentsService', () => {
           tenantId: 8,
           amount: 1000,
           referenceNumber: 'ref-123',
-          proofData,
+          proofData: null,
+          cloudinaryAssetId: receiptAsset.assetId,
+          cloudinaryPublicId: receiptAsset.publicId,
+          cloudinarySecureUrl: receiptAsset.secureUrl,
+          cloudinaryResourceType: receiptAsset.resourceType,
+          cloudinaryFormat: receiptAsset.format,
         }),
       }),
     );
+    expect(receiptStorageMock.upload).toHaveBeenCalledWith(proofData);
     expect(prismaMock.$transaction).toHaveBeenCalledWith(
       expect.any(Function),
       { isolationLevel: 'Serializable' },
     );
     expect(transactionMock.payment.update).not.toHaveBeenCalled();
+  });
+
+  it('does not create a payment submission when Cloudinary upload fails', async () => {
+    receiptStorageMock.upload.mockRejectedValue(
+      new Error('Cloudinary upload failed'),
+    );
+
+    await expect(
+      service.submitProof(
+        99,
+        12,
+        {
+          amount: 100,
+          paymentMethod: 'Cash',
+          paymentDate: '2026-11-08',
+          referenceNumber: 'ref-cloudinary-error',
+        },
+        {
+          buffer: Buffer.from([
+            0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+          ]),
+          mimetype: 'image/png',
+          originalname: 'receipt.png',
+          size: 8,
+        },
+      ),
+    ).rejects.toThrow('Cloudinary upload failed');
+
+    expect(prismaMock.$transaction).not.toHaveBeenCalled();
+    expect(transactionMock.paymentSubmission.create).not.toHaveBeenCalled();
+  });
+
+  it('cleans up a Cloudinary upload when database persistence fails', async () => {
+    transactionMock.payment.findFirst.mockResolvedValue({
+      id: 12,
+      tenantId: 8,
+      amount: 1500,
+      amountPaid: 0,
+      paymentStatus: 'UNPAID',
+      submissions: [],
+    });
+    transactionMock.paymentSubmission.create.mockRejectedValue(
+      new Error('Database write failed'),
+    );
+
+    await expect(
+      service.submitProof(
+        99,
+        12,
+        {
+          amount: 100,
+          paymentMethod: 'Cash',
+          paymentDate: '2026-11-08',
+          referenceNumber: 'ref-db-error',
+        },
+        {
+          buffer: Buffer.from([
+            0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+          ]),
+          mimetype: 'image/png',
+          originalname: 'receipt.png',
+          size: 8,
+        },
+      ),
+    ).rejects.toThrow('Database write failed');
+
+    expect(receiptStorageMock.delete).toHaveBeenCalledWith(
+      receiptAsset.publicId,
+      receiptAsset.resourceType,
+    );
+    expect(receiptCleanupMock.enqueue).not.toHaveBeenCalled();
+  });
+
+  it('queues cleanup if an uploaded receipt cannot be removed after a database failure', async () => {
+    transactionMock.payment.findFirst.mockResolvedValue({
+      id: 12,
+      tenantId: 8,
+      amount: 1500,
+      amountPaid: 0,
+      paymentStatus: 'UNPAID',
+      submissions: [],
+    });
+    transactionMock.paymentSubmission.create.mockRejectedValue(
+      new Error('Database write failed'),
+    );
+    receiptStorageMock.delete.mockRejectedValue(
+      new Error('Cloudinary delete failed'),
+    );
+
+    await expect(
+      service.submitProof(
+        99,
+        12,
+        {
+          amount: 100,
+          paymentMethod: 'Cash',
+          paymentDate: '2026-11-08',
+          referenceNumber: 'ref-cleanup-error',
+        },
+        {
+          buffer: Buffer.from([
+            0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+          ]),
+          mimetype: 'image/png',
+          originalname: 'receipt.png',
+          size: 8,
+        },
+      ),
+    ).rejects.toThrow('Database write failed');
+
+    expect(receiptCleanupMock.enqueue).toHaveBeenCalledWith(receiptAsset);
   });
 
   it('does not disclose or allow proof submission for another tenant payment', async () => {
@@ -325,6 +474,87 @@ describe('PaymentsService', () => {
       mimeType: 'application/pdf',
       fileName: 'receipt.pdf',
     });
+  });
+
+  it('retrieves a new Cloudinary receipt after checking tenant ownership', async () => {
+    const bytes = Buffer.from('cloud receipt');
+    prismaMock.paymentSubmission.findUnique.mockResolvedValue({
+      tenant: { userId: 99 },
+      proofData: null,
+      proofMimeType: 'application/pdf',
+      proofFileName: 'receipt.pdf',
+      cloudinaryPublicId: receiptAsset.publicId,
+      cloudinaryResourceType: 'raw',
+      cloudinaryFormat: 'pdf',
+    });
+    receiptStorageMock.download.mockResolvedValue(bytes);
+
+    await expect(
+      service.getProof(30, 99, UserRole.TENANT),
+    ).resolves.toEqual({
+      data: bytes,
+      mimeType: 'application/pdf',
+      fileName: 'receipt.pdf',
+    });
+    expect(receiptStorageMock.download).toHaveBeenCalledWith(
+      receiptAsset.publicId,
+      'raw',
+      'pdf',
+    );
+  });
+
+  it('allows authorized staff to retrieve a tenant receipt', async () => {
+    prismaMock.paymentSubmission.findUnique.mockResolvedValue({
+      tenant: { userId: 99 },
+      proofData: null,
+      proofMimeType: 'image/png',
+      proofFileName: 'receipt.png',
+      cloudinaryPublicId: receiptAsset.publicId,
+      cloudinaryResourceType: 'image',
+      cloudinaryFormat: 'png',
+    });
+    receiptStorageMock.download.mockResolvedValue(Buffer.from('cloud receipt'));
+
+    await expect(
+      service.getProof(30, 101, UserRole.STAFF),
+    ).resolves.toMatchObject({
+      mimeType: 'image/png',
+      fileName: 'receipt.png',
+    });
+    expect(receiptStorageMock.download).toHaveBeenCalledWith(
+      receiptAsset.publicId,
+      'image',
+      'png',
+    );
+  });
+
+  it('does not request a Cloudinary receipt for a different tenant', async () => {
+    prismaMock.paymentSubmission.findUnique.mockResolvedValue({
+      tenant: { userId: 99 },
+      proofData: null,
+      proofMimeType: 'image/png',
+      proofFileName: 'receipt.png',
+      cloudinaryPublicId: receiptAsset.publicId,
+      cloudinaryResourceType: 'image',
+      cloudinaryFormat: 'png',
+    });
+
+    await expect(
+      service.getProof(30, 101, UserRole.TENANT),
+    ).rejects.toThrow('Payment proof was not found');
+    expect(receiptStorageMock.download).not.toHaveBeenCalled();
+  });
+
+  it('does not include Cloudinary asset URLs or IDs in payment submission listings', async () => {
+    prismaMock.paymentSubmission.findMany.mockResolvedValue([]);
+
+    await service.findAllSubmissions();
+
+    const selection = prismaMock.paymentSubmission.findMany.mock.calls[0][0]
+      .select;
+    expect(selection).not.toHaveProperty('cloudinaryAssetId');
+    expect(selection).not.toHaveProperty('cloudinaryPublicId');
+    expect(selection).not.toHaveProperty('cloudinarySecureUrl');
   });
 
   it('updates the paid balance and audit trail only when a pending proof is approved', async () => {

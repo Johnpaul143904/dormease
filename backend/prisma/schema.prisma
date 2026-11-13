@@ -182,7 +182,12 @@ model PaymentSubmission {
   proofFileName    String
   proofMimeType    String
   proofSize        Int
-  proofData        Bytes
+  proofData             Bytes?
+  cloudinaryAssetId     String?
+  cloudinaryPublicId    String?
+  cloudinarySecureUrl   String?
+  cloudinaryResourceType String?
+  cloudinaryFormat      String?
   status           PaymentSubmissionStatus @default(PENDING)
   rejectionRemarks String?
   verifiedAt       DateTime?
@@ -197,6 +202,18 @@ model PaymentSubmission {
   @@index([paymentId, createdAt])
   @@index([tenantId, createdAt])
   @@index([status, createdAt])
+}
+
+model CloudinaryReceiptDeletion {
+  assetId       String   @id
+  publicId      String
+  resourceType  String
+  attempts      Int      @default(0)
+  nextAttemptAt DateTime @default(now())
+  lastError     String?
+  createdAt     DateTime @default(now())
+
+  @@index([nextAttemptAt, createdAt])
 }
 
 model PaymentVerificationHistory {

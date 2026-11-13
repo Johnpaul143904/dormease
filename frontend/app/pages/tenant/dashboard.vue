@@ -27,7 +27,7 @@ const assignment = computed(() =>
           Welcome back,
           {{ auth.user.value?.fullName?.split(" ")[0] || "Tenant" }}
         </p>
-        <h2 class="mt-1 text-3xl font-bold tracking-tight">
+        <h2 class="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
           Your residence at a glance.
         </h2>
         <p class="mt-2 text-slate-500">

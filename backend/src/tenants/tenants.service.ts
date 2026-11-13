@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ClerkIdentityService } from '../auth/clerk-identity.service';
+import { CloudinaryReceiptCleanupService } from '../cloudinary/cloudinary-receipt-cleanup.service';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
 
@@ -14,6 +15,7 @@ export class TenantsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly clerkIdentityService: ClerkIdentityService,
+    private readonly receiptCleanup: CloudinaryReceiptCleanupService,
   ) {}
 
   findAll() {
@@ -167,6 +169,39 @@ export class TenantsService {
           });
           if (!tenant) throw new NotFoundException('Tenant was not found');
 
+          const receipts = await tx.paymentSubmission.findMany({
+            where: {
+              tenantId: id,
+              cloudinaryAssetId: { not: null },
+              cloudinaryPublicId: { not: null },
+              cloudinaryResourceType: { not: null },
+            },
+            select: {
+              cloudinaryAssetId: true,
+              cloudinaryPublicId: true,
+              cloudinaryResourceType: true,
+            },
+          });
+          const deletionQueue = receipts.flatMap((receipt) =>
+            receipt.cloudinaryAssetId &&
+            receipt.cloudinaryPublicId &&
+            receipt.cloudinaryResourceType
+              ? [
+                  {
+                    assetId: receipt.cloudinaryAssetId,
+                    publicId: receipt.cloudinaryPublicId,
+                    resourceType: receipt.cloudinaryResourceType,
+                  },
+                ]
+              : [],
+          );
+          if (deletionQueue.length) {
+            await tx.cloudinaryReceiptDeletion.createMany({
+              data: deletionQueue,
+              skipDuplicates: true,
+            });
+          }
+
           await tx.maintenanceRequest.deleteMany({ where: { tenantId: id } });
           await tx.payment.deleteMany({ where: { tenantId: id } });
           await tx.roomInvitation.deleteMany({ where: { tenantId: id } });
@@ -201,6 +236,7 @@ export class TenantsService {
         },
         { isolationLevel: 'Serializable' },
       );
+      await this.receiptCleanup.processPending();
     } catch (error) {
       if (this.isSerializationFailure(error)) {
         throw new ConflictException(

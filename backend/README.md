@@ -52,6 +52,12 @@ deployed HTTPS frontend origin in production). Use the configured
 `ADMIN_INVITATION_CODE` only for authorized admin provisioning. Do not commit or
 share credentials.
 
+Set `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and
+`CLOUDINARY_API_SECRET` in the backend environment for payment receipt uploads.
+Keep the API secret server-side; never configure Cloudinary credentials in the
+Nuxt frontend. Receipts are uploaded as authenticated Cloudinary assets and
+delivered through the existing authenticated API endpoint.
+
 For the Nuxt deployment, configure `NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY`,
 `NUXT_CLERK_SECRET_KEY`, and `NUXT_API_BASE_URL`. The Nuxt API base should point
 to the Render API origin with the `/api` prefix; browser requests use the
@@ -69,6 +75,21 @@ npx prisma generate --config prisma7.config.ts
 The migration has not been applied to any database. Review and apply it through
 the deployment's normal backup and migration process; never use database reset
 or destructive schema commands.
+
+The Cloudinary receipt migration is also additive. It keeps existing
+`PaymentSubmission.proofData` bytes and makes that field nullable for new
+Cloudinary-backed receipts. Existing receipt reads continue to use `proofData`;
+new receipt reads use the stored Cloudinary asset metadata. A durable deletion
+queue retries Cloudinary cleanup when payment records are removed with a
+tenant. Generate the local client with:
+
+```bash
+npx prisma generate --config prisma7.config.ts
+```
+
+Before deploying this backend version, review and apply the new migration only
+through the approved database migration process. This integration does not run
+production migrations. Do not run `prisma migrate reset`.
 
 ## Project setup
 

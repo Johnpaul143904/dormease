@@ -56,6 +56,11 @@ export type PaymentSubmissionMinAggregateOutputType = {
   proofMimeType: string | null
   proofSize: number | null
   proofData: runtime.Bytes | null
+  cloudinaryAssetId: string | null
+  cloudinaryPublicId: string | null
+  cloudinarySecureUrl: string | null
+  cloudinaryResourceType: string | null
+  cloudinaryFormat: string | null
   status: $Enums.PaymentSubmissionStatus | null
   rejectionRemarks: string | null
   verifiedAt: Date | null
@@ -75,6 +80,11 @@ export type PaymentSubmissionMaxAggregateOutputType = {
   proofMimeType: string | null
   proofSize: number | null
   proofData: runtime.Bytes | null
+  cloudinaryAssetId: string | null
+  cloudinaryPublicId: string | null
+  cloudinarySecureUrl: string | null
+  cloudinaryResourceType: string | null
+  cloudinaryFormat: string | null
   status: $Enums.PaymentSubmissionStatus | null
   rejectionRemarks: string | null
   verifiedAt: Date | null
@@ -94,6 +104,11 @@ export type PaymentSubmissionCountAggregateOutputType = {
   proofMimeType: number
   proofSize: number
   proofData: number
+  cloudinaryAssetId: number
+  cloudinaryPublicId: number
+  cloudinarySecureUrl: number
+  cloudinaryResourceType: number
+  cloudinaryFormat: number
   status: number
   rejectionRemarks: number
   verifiedAt: number
@@ -133,6 +148,11 @@ export type PaymentSubmissionMinAggregateInputType = {
   proofMimeType?: true
   proofSize?: true
   proofData?: true
+  cloudinaryAssetId?: true
+  cloudinaryPublicId?: true
+  cloudinarySecureUrl?: true
+  cloudinaryResourceType?: true
+  cloudinaryFormat?: true
   status?: true
   rejectionRemarks?: true
   verifiedAt?: true
@@ -152,6 +172,11 @@ export type PaymentSubmissionMaxAggregateInputType = {
   proofMimeType?: true
   proofSize?: true
   proofData?: true
+  cloudinaryAssetId?: true
+  cloudinaryPublicId?: true
+  cloudinarySecureUrl?: true
+  cloudinaryResourceType?: true
+  cloudinaryFormat?: true
   status?: true
   rejectionRemarks?: true
   verifiedAt?: true
@@ -171,6 +196,11 @@ export type PaymentSubmissionCountAggregateInputType = {
   proofMimeType?: true
   proofSize?: true
   proofData?: true
+  cloudinaryAssetId?: true
+  cloudinaryPublicId?: true
+  cloudinarySecureUrl?: true
+  cloudinaryResourceType?: true
+  cloudinaryFormat?: true
   status?: true
   rejectionRemarks?: true
   verifiedAt?: true
@@ -276,7 +306,12 @@ export type PaymentSubmissionGroupByOutputType = {
   proofFileName: string
   proofMimeType: string
   proofSize: number
-  proofData: runtime.Bytes
+  proofData: runtime.Bytes | null
+  cloudinaryAssetId: string | null
+  cloudinaryPublicId: string | null
+  cloudinarySecureUrl: string | null
+  cloudinaryResourceType: string | null
+  cloudinaryFormat: string | null
   status: $Enums.PaymentSubmissionStatus
   rejectionRemarks: string | null
   verifiedAt: Date | null
@@ -318,7 +353,12 @@ export type PaymentSubmissionWhereInput = {
   proofFileName?: Prisma.StringFilter<"PaymentSubmission"> | string
   proofMimeType?: Prisma.StringFilter<"PaymentSubmission"> | string
   proofSize?: Prisma.IntFilter<"PaymentSubmission"> | number
-  proofData?: Prisma.BytesFilter<"PaymentSubmission"> | runtime.Bytes
+  proofData?: Prisma.BytesNullableFilter<"PaymentSubmission"> | runtime.Bytes | null
+  cloudinaryAssetId?: Prisma.StringNullableFilter<"PaymentSubmission"> | string | null
+  cloudinaryPublicId?: Prisma.StringNullableFilter<"PaymentSubmission"> | string | null
+  cloudinarySecureUrl?: Prisma.StringNullableFilter<"PaymentSubmission"> | string | null
+  cloudinaryResourceType?: Prisma.StringNullableFilter<"PaymentSubmission"> | string | null
+  cloudinaryFormat?: Prisma.StringNullableFilter<"PaymentSubmission"> | string | null
   status?: Prisma.EnumPaymentSubmissionStatusFilter<"PaymentSubmission"> | $Enums.PaymentSubmissionStatus
   rejectionRemarks?: Prisma.StringNullableFilter<"PaymentSubmission"> | string | null
   verifiedAt?: Prisma.DateTimeNullableFilter<"PaymentSubmission"> | Date | string | null
@@ -341,7 +381,12 @@ export type PaymentSubmissionOrderByWithRelationInput = {
   proofFileName?: Prisma.SortOrder
   proofMimeType?: Prisma.SortOrder
   proofSize?: Prisma.SortOrder
-  proofData?: Prisma.SortOrder
+  proofData?: Prisma.SortOrderInput | Prisma.SortOrder
+  cloudinaryAssetId?: Prisma.SortOrderInput | Prisma.SortOrder
+  cloudinaryPublicId?: Prisma.SortOrderInput | Prisma.SortOrder
+  cloudinarySecureUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  cloudinaryResourceType?: Prisma.SortOrderInput | Prisma.SortOrder
+  cloudinaryFormat?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   rejectionRemarks?: Prisma.SortOrderInput | Prisma.SortOrder
   verifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -367,7 +412,12 @@ export type PaymentSubmissionWhereUniqueInput = Prisma.AtLeast<{
   proofFileName?: Prisma.StringFilter<"PaymentSubmission"> | string
   proofMimeType?: Prisma.StringFilter<"PaymentSubmission"> | string
   proofSize?: Prisma.IntFilter<"PaymentSubmission"> | number
-  proofData?: Prisma.BytesFilter<"PaymentSubmission"> | runtime.Bytes
+  proofData?: Prisma.BytesNullableFilter<"PaymentSubmission"> | runtime.Bytes | null
+  cloudinaryAssetId?: Prisma.StringNullableFilter<"PaymentSubmission"> | string | null
+  cloudinaryPublicId?: Prisma.StringNullableFilter<"PaymentSubmission"> | string | null
+  cloudinarySecureUrl?: Prisma.StringNullableFilter<"PaymentSubmission"> | string | null
+  cloudinaryResourceType?: Prisma.StringNullableFilter<"PaymentSubmission"> | string | null
+  cloudinaryFormat?: Prisma.StringNullableFilter<"PaymentSubmission"> | string | null
   status?: Prisma.EnumPaymentSubmissionStatusFilter<"PaymentSubmission"> | $Enums.PaymentSubmissionStatus
   rejectionRemarks?: Prisma.StringNullableFilter<"PaymentSubmission"> | string | null
   verifiedAt?: Prisma.DateTimeNullableFilter<"PaymentSubmission"> | Date | string | null
@@ -390,7 +440,12 @@ export type PaymentSubmissionOrderByWithAggregationInput = {
   proofFileName?: Prisma.SortOrder
   proofMimeType?: Prisma.SortOrder
   proofSize?: Prisma.SortOrder
-  proofData?: Prisma.SortOrder
+  proofData?: Prisma.SortOrderInput | Prisma.SortOrder
+  cloudinaryAssetId?: Prisma.SortOrderInput | Prisma.SortOrder
+  cloudinaryPublicId?: Prisma.SortOrderInput | Prisma.SortOrder
+  cloudinarySecureUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  cloudinaryResourceType?: Prisma.SortOrderInput | Prisma.SortOrder
+  cloudinaryFormat?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   rejectionRemarks?: Prisma.SortOrderInput | Prisma.SortOrder
   verifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -417,7 +472,12 @@ export type PaymentSubmissionScalarWhereWithAggregatesInput = {
   proofFileName?: Prisma.StringWithAggregatesFilter<"PaymentSubmission"> | string
   proofMimeType?: Prisma.StringWithAggregatesFilter<"PaymentSubmission"> | string
   proofSize?: Prisma.IntWithAggregatesFilter<"PaymentSubmission"> | number
-  proofData?: Prisma.BytesWithAggregatesFilter<"PaymentSubmission"> | runtime.Bytes
+  proofData?: Prisma.BytesNullableWithAggregatesFilter<"PaymentSubmission"> | runtime.Bytes | null
+  cloudinaryAssetId?: Prisma.StringNullableWithAggregatesFilter<"PaymentSubmission"> | string | null
+  cloudinaryPublicId?: Prisma.StringNullableWithAggregatesFilter<"PaymentSubmission"> | string | null
+  cloudinarySecureUrl?: Prisma.StringNullableWithAggregatesFilter<"PaymentSubmission"> | string | null
+  cloudinaryResourceType?: Prisma.StringNullableWithAggregatesFilter<"PaymentSubmission"> | string | null
+  cloudinaryFormat?: Prisma.StringNullableWithAggregatesFilter<"PaymentSubmission"> | string | null
   status?: Prisma.EnumPaymentSubmissionStatusWithAggregatesFilter<"PaymentSubmission"> | $Enums.PaymentSubmissionStatus
   rejectionRemarks?: Prisma.StringNullableWithAggregatesFilter<"PaymentSubmission"> | string | null
   verifiedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"PaymentSubmission"> | Date | string | null
@@ -433,7 +493,12 @@ export type PaymentSubmissionCreateInput = {
   proofFileName: string
   proofMimeType: string
   proofSize: number
-  proofData: runtime.Bytes
+  proofData?: runtime.Bytes | null
+  cloudinaryAssetId?: string | null
+  cloudinaryPublicId?: string | null
+  cloudinarySecureUrl?: string | null
+  cloudinaryResourceType?: string | null
+  cloudinaryFormat?: string | null
   status?: $Enums.PaymentSubmissionStatus
   rejectionRemarks?: string | null
   verifiedAt?: Date | string | null
@@ -455,7 +520,12 @@ export type PaymentSubmissionUncheckedCreateInput = {
   proofFileName: string
   proofMimeType: string
   proofSize: number
-  proofData: runtime.Bytes
+  proofData?: runtime.Bytes | null
+  cloudinaryAssetId?: string | null
+  cloudinaryPublicId?: string | null
+  cloudinarySecureUrl?: string | null
+  cloudinaryResourceType?: string | null
+  cloudinaryFormat?: string | null
   status?: $Enums.PaymentSubmissionStatus
   rejectionRemarks?: string | null
   verifiedAt?: Date | string | null
@@ -472,7 +542,12 @@ export type PaymentSubmissionUpdateInput = {
   proofFileName?: Prisma.StringFieldUpdateOperationsInput | string
   proofMimeType?: Prisma.StringFieldUpdateOperationsInput | string
   proofSize?: Prisma.IntFieldUpdateOperationsInput | number
-  proofData?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
+  proofData?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  cloudinaryAssetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryPublicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinarySecureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryResourceType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryFormat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentSubmissionStatusFieldUpdateOperationsInput | $Enums.PaymentSubmissionStatus
   rejectionRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -494,7 +569,12 @@ export type PaymentSubmissionUncheckedUpdateInput = {
   proofFileName?: Prisma.StringFieldUpdateOperationsInput | string
   proofMimeType?: Prisma.StringFieldUpdateOperationsInput | string
   proofSize?: Prisma.IntFieldUpdateOperationsInput | number
-  proofData?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
+  proofData?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  cloudinaryAssetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryPublicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinarySecureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryResourceType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryFormat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentSubmissionStatusFieldUpdateOperationsInput | $Enums.PaymentSubmissionStatus
   rejectionRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -514,7 +594,12 @@ export type PaymentSubmissionCreateManyInput = {
   proofFileName: string
   proofMimeType: string
   proofSize: number
-  proofData: runtime.Bytes
+  proofData?: runtime.Bytes | null
+  cloudinaryAssetId?: string | null
+  cloudinaryPublicId?: string | null
+  cloudinarySecureUrl?: string | null
+  cloudinaryResourceType?: string | null
+  cloudinaryFormat?: string | null
   status?: $Enums.PaymentSubmissionStatus
   rejectionRemarks?: string | null
   verifiedAt?: Date | string | null
@@ -530,7 +615,12 @@ export type PaymentSubmissionUpdateManyMutationInput = {
   proofFileName?: Prisma.StringFieldUpdateOperationsInput | string
   proofMimeType?: Prisma.StringFieldUpdateOperationsInput | string
   proofSize?: Prisma.IntFieldUpdateOperationsInput | number
-  proofData?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
+  proofData?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  cloudinaryAssetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryPublicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinarySecureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryResourceType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryFormat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentSubmissionStatusFieldUpdateOperationsInput | $Enums.PaymentSubmissionStatus
   rejectionRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -548,7 +638,12 @@ export type PaymentSubmissionUncheckedUpdateManyInput = {
   proofFileName?: Prisma.StringFieldUpdateOperationsInput | string
   proofMimeType?: Prisma.StringFieldUpdateOperationsInput | string
   proofSize?: Prisma.IntFieldUpdateOperationsInput | number
-  proofData?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
+  proofData?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  cloudinaryAssetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryPublicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinarySecureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryResourceType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryFormat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentSubmissionStatusFieldUpdateOperationsInput | $Enums.PaymentSubmissionStatus
   rejectionRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -578,6 +673,11 @@ export type PaymentSubmissionCountOrderByAggregateInput = {
   proofMimeType?: Prisma.SortOrder
   proofSize?: Prisma.SortOrder
   proofData?: Prisma.SortOrder
+  cloudinaryAssetId?: Prisma.SortOrder
+  cloudinaryPublicId?: Prisma.SortOrder
+  cloudinarySecureUrl?: Prisma.SortOrder
+  cloudinaryResourceType?: Prisma.SortOrder
+  cloudinaryFormat?: Prisma.SortOrder
   status?: Prisma.SortOrder
   rejectionRemarks?: Prisma.SortOrder
   verifiedAt?: Prisma.SortOrder
@@ -606,6 +706,11 @@ export type PaymentSubmissionMaxOrderByAggregateInput = {
   proofMimeType?: Prisma.SortOrder
   proofSize?: Prisma.SortOrder
   proofData?: Prisma.SortOrder
+  cloudinaryAssetId?: Prisma.SortOrder
+  cloudinaryPublicId?: Prisma.SortOrder
+  cloudinarySecureUrl?: Prisma.SortOrder
+  cloudinaryResourceType?: Prisma.SortOrder
+  cloudinaryFormat?: Prisma.SortOrder
   status?: Prisma.SortOrder
   rejectionRemarks?: Prisma.SortOrder
   verifiedAt?: Prisma.SortOrder
@@ -625,6 +730,11 @@ export type PaymentSubmissionMinOrderByAggregateInput = {
   proofMimeType?: Prisma.SortOrder
   proofSize?: Prisma.SortOrder
   proofData?: Prisma.SortOrder
+  cloudinaryAssetId?: Prisma.SortOrder
+  cloudinaryPublicId?: Prisma.SortOrder
+  cloudinarySecureUrl?: Prisma.SortOrder
+  cloudinaryResourceType?: Prisma.SortOrder
+  cloudinaryFormat?: Prisma.SortOrder
   status?: Prisma.SortOrder
   rejectionRemarks?: Prisma.SortOrder
   verifiedAt?: Prisma.SortOrder
@@ -772,8 +882,8 @@ export type PaymentSubmissionUncheckedUpdateManyWithoutPaymentNestedInput = {
   deleteMany?: Prisma.PaymentSubmissionScalarWhereInput | Prisma.PaymentSubmissionScalarWhereInput[]
 }
 
-export type BytesFieldUpdateOperationsInput = {
-  set?: runtime.Bytes
+export type NullableBytesFieldUpdateOperationsInput = {
+  set?: runtime.Bytes | null
 }
 
 export type EnumPaymentSubmissionStatusFieldUpdateOperationsInput = {
@@ -810,7 +920,12 @@ export type PaymentSubmissionCreateWithoutVerifiedByInput = {
   proofFileName: string
   proofMimeType: string
   proofSize: number
-  proofData: runtime.Bytes
+  proofData?: runtime.Bytes | null
+  cloudinaryAssetId?: string | null
+  cloudinaryPublicId?: string | null
+  cloudinarySecureUrl?: string | null
+  cloudinaryResourceType?: string | null
+  cloudinaryFormat?: string | null
   status?: $Enums.PaymentSubmissionStatus
   rejectionRemarks?: string | null
   verifiedAt?: Date | string | null
@@ -831,7 +946,12 @@ export type PaymentSubmissionUncheckedCreateWithoutVerifiedByInput = {
   proofFileName: string
   proofMimeType: string
   proofSize: number
-  proofData: runtime.Bytes
+  proofData?: runtime.Bytes | null
+  cloudinaryAssetId?: string | null
+  cloudinaryPublicId?: string | null
+  cloudinarySecureUrl?: string | null
+  cloudinaryResourceType?: string | null
+  cloudinaryFormat?: string | null
   status?: $Enums.PaymentSubmissionStatus
   rejectionRemarks?: string | null
   verifiedAt?: Date | string | null
@@ -879,7 +999,12 @@ export type PaymentSubmissionScalarWhereInput = {
   proofFileName?: Prisma.StringFilter<"PaymentSubmission"> | string
   proofMimeType?: Prisma.StringFilter<"PaymentSubmission"> | string
   proofSize?: Prisma.IntFilter<"PaymentSubmission"> | number
-  proofData?: Prisma.BytesFilter<"PaymentSubmission"> | runtime.Bytes
+  proofData?: Prisma.BytesNullableFilter<"PaymentSubmission"> | runtime.Bytes | null
+  cloudinaryAssetId?: Prisma.StringNullableFilter<"PaymentSubmission"> | string | null
+  cloudinaryPublicId?: Prisma.StringNullableFilter<"PaymentSubmission"> | string | null
+  cloudinarySecureUrl?: Prisma.StringNullableFilter<"PaymentSubmission"> | string | null
+  cloudinaryResourceType?: Prisma.StringNullableFilter<"PaymentSubmission"> | string | null
+  cloudinaryFormat?: Prisma.StringNullableFilter<"PaymentSubmission"> | string | null
   status?: Prisma.EnumPaymentSubmissionStatusFilter<"PaymentSubmission"> | $Enums.PaymentSubmissionStatus
   rejectionRemarks?: Prisma.StringNullableFilter<"PaymentSubmission"> | string | null
   verifiedAt?: Prisma.DateTimeNullableFilter<"PaymentSubmission"> | Date | string | null
@@ -895,7 +1020,12 @@ export type PaymentSubmissionCreateWithoutTenantInput = {
   proofFileName: string
   proofMimeType: string
   proofSize: number
-  proofData: runtime.Bytes
+  proofData?: runtime.Bytes | null
+  cloudinaryAssetId?: string | null
+  cloudinaryPublicId?: string | null
+  cloudinarySecureUrl?: string | null
+  cloudinaryResourceType?: string | null
+  cloudinaryFormat?: string | null
   status?: $Enums.PaymentSubmissionStatus
   rejectionRemarks?: string | null
   verifiedAt?: Date | string | null
@@ -915,7 +1045,12 @@ export type PaymentSubmissionUncheckedCreateWithoutTenantInput = {
   proofFileName: string
   proofMimeType: string
   proofSize: number
-  proofData: runtime.Bytes
+  proofData?: runtime.Bytes | null
+  cloudinaryAssetId?: string | null
+  cloudinaryPublicId?: string | null
+  cloudinarySecureUrl?: string | null
+  cloudinaryResourceType?: string | null
+  cloudinaryFormat?: string | null
   status?: $Enums.PaymentSubmissionStatus
   rejectionRemarks?: string | null
   verifiedAt?: Date | string | null
@@ -958,7 +1093,12 @@ export type PaymentSubmissionCreateWithoutPaymentInput = {
   proofFileName: string
   proofMimeType: string
   proofSize: number
-  proofData: runtime.Bytes
+  proofData?: runtime.Bytes | null
+  cloudinaryAssetId?: string | null
+  cloudinaryPublicId?: string | null
+  cloudinarySecureUrl?: string | null
+  cloudinaryResourceType?: string | null
+  cloudinaryFormat?: string | null
   status?: $Enums.PaymentSubmissionStatus
   rejectionRemarks?: string | null
   verifiedAt?: Date | string | null
@@ -978,7 +1118,12 @@ export type PaymentSubmissionUncheckedCreateWithoutPaymentInput = {
   proofFileName: string
   proofMimeType: string
   proofSize: number
-  proofData: runtime.Bytes
+  proofData?: runtime.Bytes | null
+  cloudinaryAssetId?: string | null
+  cloudinaryPublicId?: string | null
+  cloudinarySecureUrl?: string | null
+  cloudinaryResourceType?: string | null
+  cloudinaryFormat?: string | null
   status?: $Enums.PaymentSubmissionStatus
   rejectionRemarks?: string | null
   verifiedAt?: Date | string | null
@@ -1021,7 +1166,12 @@ export type PaymentSubmissionCreateWithoutAuditTrailInput = {
   proofFileName: string
   proofMimeType: string
   proofSize: number
-  proofData: runtime.Bytes
+  proofData?: runtime.Bytes | null
+  cloudinaryAssetId?: string | null
+  cloudinaryPublicId?: string | null
+  cloudinarySecureUrl?: string | null
+  cloudinaryResourceType?: string | null
+  cloudinaryFormat?: string | null
   status?: $Enums.PaymentSubmissionStatus
   rejectionRemarks?: string | null
   verifiedAt?: Date | string | null
@@ -1042,7 +1192,12 @@ export type PaymentSubmissionUncheckedCreateWithoutAuditTrailInput = {
   proofFileName: string
   proofMimeType: string
   proofSize: number
-  proofData: runtime.Bytes
+  proofData?: runtime.Bytes | null
+  cloudinaryAssetId?: string | null
+  cloudinaryPublicId?: string | null
+  cloudinarySecureUrl?: string | null
+  cloudinaryResourceType?: string | null
+  cloudinaryFormat?: string | null
   status?: $Enums.PaymentSubmissionStatus
   rejectionRemarks?: string | null
   verifiedAt?: Date | string | null
@@ -1074,7 +1229,12 @@ export type PaymentSubmissionUpdateWithoutAuditTrailInput = {
   proofFileName?: Prisma.StringFieldUpdateOperationsInput | string
   proofMimeType?: Prisma.StringFieldUpdateOperationsInput | string
   proofSize?: Prisma.IntFieldUpdateOperationsInput | number
-  proofData?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
+  proofData?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  cloudinaryAssetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryPublicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinarySecureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryResourceType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryFormat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentSubmissionStatusFieldUpdateOperationsInput | $Enums.PaymentSubmissionStatus
   rejectionRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1095,7 +1255,12 @@ export type PaymentSubmissionUncheckedUpdateWithoutAuditTrailInput = {
   proofFileName?: Prisma.StringFieldUpdateOperationsInput | string
   proofMimeType?: Prisma.StringFieldUpdateOperationsInput | string
   proofSize?: Prisma.IntFieldUpdateOperationsInput | number
-  proofData?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
+  proofData?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  cloudinaryAssetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryPublicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinarySecureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryResourceType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryFormat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentSubmissionStatusFieldUpdateOperationsInput | $Enums.PaymentSubmissionStatus
   rejectionRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1114,7 +1279,12 @@ export type PaymentSubmissionCreateManyVerifiedByInput = {
   proofFileName: string
   proofMimeType: string
   proofSize: number
-  proofData: runtime.Bytes
+  proofData?: runtime.Bytes | null
+  cloudinaryAssetId?: string | null
+  cloudinaryPublicId?: string | null
+  cloudinarySecureUrl?: string | null
+  cloudinaryResourceType?: string | null
+  cloudinaryFormat?: string | null
   status?: $Enums.PaymentSubmissionStatus
   rejectionRemarks?: string | null
   verifiedAt?: Date | string | null
@@ -1129,7 +1299,12 @@ export type PaymentSubmissionUpdateWithoutVerifiedByInput = {
   proofFileName?: Prisma.StringFieldUpdateOperationsInput | string
   proofMimeType?: Prisma.StringFieldUpdateOperationsInput | string
   proofSize?: Prisma.IntFieldUpdateOperationsInput | number
-  proofData?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
+  proofData?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  cloudinaryAssetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryPublicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinarySecureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryResourceType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryFormat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentSubmissionStatusFieldUpdateOperationsInput | $Enums.PaymentSubmissionStatus
   rejectionRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1150,7 +1325,12 @@ export type PaymentSubmissionUncheckedUpdateWithoutVerifiedByInput = {
   proofFileName?: Prisma.StringFieldUpdateOperationsInput | string
   proofMimeType?: Prisma.StringFieldUpdateOperationsInput | string
   proofSize?: Prisma.IntFieldUpdateOperationsInput | number
-  proofData?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
+  proofData?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  cloudinaryAssetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryPublicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinarySecureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryResourceType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryFormat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentSubmissionStatusFieldUpdateOperationsInput | $Enums.PaymentSubmissionStatus
   rejectionRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1169,7 +1349,12 @@ export type PaymentSubmissionUncheckedUpdateManyWithoutVerifiedByInput = {
   proofFileName?: Prisma.StringFieldUpdateOperationsInput | string
   proofMimeType?: Prisma.StringFieldUpdateOperationsInput | string
   proofSize?: Prisma.IntFieldUpdateOperationsInput | number
-  proofData?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
+  proofData?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  cloudinaryAssetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryPublicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinarySecureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryResourceType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryFormat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentSubmissionStatusFieldUpdateOperationsInput | $Enums.PaymentSubmissionStatus
   rejectionRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1186,7 +1371,12 @@ export type PaymentSubmissionCreateManyTenantInput = {
   proofFileName: string
   proofMimeType: string
   proofSize: number
-  proofData: runtime.Bytes
+  proofData?: runtime.Bytes | null
+  cloudinaryAssetId?: string | null
+  cloudinaryPublicId?: string | null
+  cloudinarySecureUrl?: string | null
+  cloudinaryResourceType?: string | null
+  cloudinaryFormat?: string | null
   status?: $Enums.PaymentSubmissionStatus
   rejectionRemarks?: string | null
   verifiedAt?: Date | string | null
@@ -1202,7 +1392,12 @@ export type PaymentSubmissionUpdateWithoutTenantInput = {
   proofFileName?: Prisma.StringFieldUpdateOperationsInput | string
   proofMimeType?: Prisma.StringFieldUpdateOperationsInput | string
   proofSize?: Prisma.IntFieldUpdateOperationsInput | number
-  proofData?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
+  proofData?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  cloudinaryAssetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryPublicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinarySecureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryResourceType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryFormat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentSubmissionStatusFieldUpdateOperationsInput | $Enums.PaymentSubmissionStatus
   rejectionRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1222,7 +1417,12 @@ export type PaymentSubmissionUncheckedUpdateWithoutTenantInput = {
   proofFileName?: Prisma.StringFieldUpdateOperationsInput | string
   proofMimeType?: Prisma.StringFieldUpdateOperationsInput | string
   proofSize?: Prisma.IntFieldUpdateOperationsInput | number
-  proofData?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
+  proofData?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  cloudinaryAssetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryPublicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinarySecureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryResourceType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryFormat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentSubmissionStatusFieldUpdateOperationsInput | $Enums.PaymentSubmissionStatus
   rejectionRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1241,7 +1441,12 @@ export type PaymentSubmissionUncheckedUpdateManyWithoutTenantInput = {
   proofFileName?: Prisma.StringFieldUpdateOperationsInput | string
   proofMimeType?: Prisma.StringFieldUpdateOperationsInput | string
   proofSize?: Prisma.IntFieldUpdateOperationsInput | number
-  proofData?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
+  proofData?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  cloudinaryAssetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryPublicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinarySecureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryResourceType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryFormat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentSubmissionStatusFieldUpdateOperationsInput | $Enums.PaymentSubmissionStatus
   rejectionRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1259,7 +1464,12 @@ export type PaymentSubmissionCreateManyPaymentInput = {
   proofFileName: string
   proofMimeType: string
   proofSize: number
-  proofData: runtime.Bytes
+  proofData?: runtime.Bytes | null
+  cloudinaryAssetId?: string | null
+  cloudinaryPublicId?: string | null
+  cloudinarySecureUrl?: string | null
+  cloudinaryResourceType?: string | null
+  cloudinaryFormat?: string | null
   status?: $Enums.PaymentSubmissionStatus
   rejectionRemarks?: string | null
   verifiedAt?: Date | string | null
@@ -1275,7 +1485,12 @@ export type PaymentSubmissionUpdateWithoutPaymentInput = {
   proofFileName?: Prisma.StringFieldUpdateOperationsInput | string
   proofMimeType?: Prisma.StringFieldUpdateOperationsInput | string
   proofSize?: Prisma.IntFieldUpdateOperationsInput | number
-  proofData?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
+  proofData?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  cloudinaryAssetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryPublicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinarySecureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryResourceType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryFormat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentSubmissionStatusFieldUpdateOperationsInput | $Enums.PaymentSubmissionStatus
   rejectionRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1295,7 +1510,12 @@ export type PaymentSubmissionUncheckedUpdateWithoutPaymentInput = {
   proofFileName?: Prisma.StringFieldUpdateOperationsInput | string
   proofMimeType?: Prisma.StringFieldUpdateOperationsInput | string
   proofSize?: Prisma.IntFieldUpdateOperationsInput | number
-  proofData?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
+  proofData?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  cloudinaryAssetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryPublicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinarySecureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryResourceType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryFormat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentSubmissionStatusFieldUpdateOperationsInput | $Enums.PaymentSubmissionStatus
   rejectionRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1314,7 +1534,12 @@ export type PaymentSubmissionUncheckedUpdateManyWithoutPaymentInput = {
   proofFileName?: Prisma.StringFieldUpdateOperationsInput | string
   proofMimeType?: Prisma.StringFieldUpdateOperationsInput | string
   proofSize?: Prisma.IntFieldUpdateOperationsInput | number
-  proofData?: Prisma.BytesFieldUpdateOperationsInput | runtime.Bytes
+  proofData?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  cloudinaryAssetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryPublicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinarySecureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryResourceType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryFormat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentSubmissionStatusFieldUpdateOperationsInput | $Enums.PaymentSubmissionStatus
   rejectionRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1365,6 +1590,11 @@ export type PaymentSubmissionSelect<ExtArgs extends runtime.Types.Extensions.Int
   proofMimeType?: boolean
   proofSize?: boolean
   proofData?: boolean
+  cloudinaryAssetId?: boolean
+  cloudinaryPublicId?: boolean
+  cloudinarySecureUrl?: boolean
+  cloudinaryResourceType?: boolean
+  cloudinaryFormat?: boolean
   status?: boolean
   rejectionRemarks?: boolean
   verifiedAt?: boolean
@@ -1389,6 +1619,11 @@ export type PaymentSubmissionSelectCreateManyAndReturn<ExtArgs extends runtime.T
   proofMimeType?: boolean
   proofSize?: boolean
   proofData?: boolean
+  cloudinaryAssetId?: boolean
+  cloudinaryPublicId?: boolean
+  cloudinarySecureUrl?: boolean
+  cloudinaryResourceType?: boolean
+  cloudinaryFormat?: boolean
   status?: boolean
   rejectionRemarks?: boolean
   verifiedAt?: boolean
@@ -1411,6 +1646,11 @@ export type PaymentSubmissionSelectUpdateManyAndReturn<ExtArgs extends runtime.T
   proofMimeType?: boolean
   proofSize?: boolean
   proofData?: boolean
+  cloudinaryAssetId?: boolean
+  cloudinaryPublicId?: boolean
+  cloudinarySecureUrl?: boolean
+  cloudinaryResourceType?: boolean
+  cloudinaryFormat?: boolean
   status?: boolean
   rejectionRemarks?: boolean
   verifiedAt?: boolean
@@ -1433,6 +1673,11 @@ export type PaymentSubmissionSelectScalar = {
   proofMimeType?: boolean
   proofSize?: boolean
   proofData?: boolean
+  cloudinaryAssetId?: boolean
+  cloudinaryPublicId?: boolean
+  cloudinarySecureUrl?: boolean
+  cloudinaryResourceType?: boolean
+  cloudinaryFormat?: boolean
   status?: boolean
   rejectionRemarks?: boolean
   verifiedAt?: boolean
@@ -1440,7 +1685,7 @@ export type PaymentSubmissionSelectScalar = {
   createdAt?: boolean
 }
 
-export type PaymentSubmissionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "paymentId" | "tenantId" | "amount" | "paymentMethod" | "paymentDate" | "referenceNumber" | "proofFileName" | "proofMimeType" | "proofSize" | "proofData" | "status" | "rejectionRemarks" | "verifiedAt" | "verifiedById" | "createdAt", ExtArgs["result"]["paymentSubmission"]>
+export type PaymentSubmissionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "paymentId" | "tenantId" | "amount" | "paymentMethod" | "paymentDate" | "referenceNumber" | "proofFileName" | "proofMimeType" | "proofSize" | "proofData" | "cloudinaryAssetId" | "cloudinaryPublicId" | "cloudinarySecureUrl" | "cloudinaryResourceType" | "cloudinaryFormat" | "status" | "rejectionRemarks" | "verifiedAt" | "verifiedById" | "createdAt", ExtArgs["result"]["paymentSubmission"]>
 export type PaymentSubmissionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   payment?: boolean | Prisma.PaymentDefaultArgs<ExtArgs>
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
@@ -1478,7 +1723,12 @@ export type $PaymentSubmissionPayload<ExtArgs extends runtime.Types.Extensions.I
     proofFileName: string
     proofMimeType: string
     proofSize: number
-    proofData: runtime.Bytes
+    proofData: runtime.Bytes | null
+    cloudinaryAssetId: string | null
+    cloudinaryPublicId: string | null
+    cloudinarySecureUrl: string | null
+    cloudinaryResourceType: string | null
+    cloudinaryFormat: string | null
     status: $Enums.PaymentSubmissionStatus
     rejectionRemarks: string | null
     verifiedAt: Date | null
@@ -1922,6 +2172,11 @@ export interface PaymentSubmissionFieldRefs {
   readonly proofMimeType: Prisma.FieldRef<"PaymentSubmission", 'String'>
   readonly proofSize: Prisma.FieldRef<"PaymentSubmission", 'Int'>
   readonly proofData: Prisma.FieldRef<"PaymentSubmission", 'Bytes'>
+  readonly cloudinaryAssetId: Prisma.FieldRef<"PaymentSubmission", 'String'>
+  readonly cloudinaryPublicId: Prisma.FieldRef<"PaymentSubmission", 'String'>
+  readonly cloudinarySecureUrl: Prisma.FieldRef<"PaymentSubmission", 'String'>
+  readonly cloudinaryResourceType: Prisma.FieldRef<"PaymentSubmission", 'String'>
+  readonly cloudinaryFormat: Prisma.FieldRef<"PaymentSubmission", 'String'>
   readonly status: Prisma.FieldRef<"PaymentSubmission", 'PaymentSubmissionStatus'>
   readonly rejectionRemarks: Prisma.FieldRef<"PaymentSubmission", 'String'>
   readonly verifiedAt: Prisma.FieldRef<"PaymentSubmission", 'DateTime'>

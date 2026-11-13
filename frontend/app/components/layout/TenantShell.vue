@@ -9,6 +9,7 @@ const nav = [
   { label: "My profile", to: "/profile", icon: "♙" },
 ];
 const auth = useDormEaseAuth();
+const isMenuOpen = ref(false);
 const displayName = computed(() => auth.user.value?.fullName || "Account");
 const initials = computed(
   () =>
@@ -23,10 +24,22 @@ const initials = computed(
 
 <template>
   <div class="min-h-screen bg-slate-50 text-slate-900">
-    <aside class="tenant-sidebar">
+    <button
+      v-if="isMenuOpen"
+      type="button"
+      class="tenant-sidebar-overlay"
+      aria-label="Close navigation"
+      @click="isMenuOpen = false"
+    ></button>
+    <aside
+      id="tenant-navigation"
+      class="tenant-sidebar"
+      :class="{ 'tenant-sidebar-open': isMenuOpen }"
+    >
       <NuxtLink
         to="/tenant/dashboard"
         class="flex items-center gap-3 border-b border-white/10 px-6 py-6 text-lg font-bold"
+        @click="isMenuOpen = false"
         ><span
           class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-500"
           >⌂</span
@@ -45,6 +58,7 @@ const initials = computed(
           :to="item.to"
           class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-400 transition hover:bg-white/10 hover:text-white"
           :class="route.path === item.to ? 'bg-brand-600 text-white' : ''"
+          @click="isMenuOpen = false"
           ><span class="w-5 text-center">{{ item.icon }}</span
           >{{ item.label }}</NuxtLink
         >
@@ -70,25 +84,37 @@ const initials = computed(
     </aside>
     <div class="tenant-content">
       <header
-        class="sticky top-0 z-20 flex h-20 items-center justify-between border-b border-slate-200 bg-white/90 px-6 backdrop-blur sm:px-8"
+        class="sticky top-0 z-20 flex min-h-20 items-center justify-between gap-3 border-b border-slate-200 bg-white/90 px-3 py-3 backdrop-blur sm:px-8 sm:py-4"
       >
-        <div>
-          <p
-            class="text-xs font-semibold uppercase tracking-widest text-brand-600"
+        <div class="flex min-w-0 items-center gap-3">
+          <button
+            type="button"
+            class="tenant-menu-button min-h-11 min-w-11 shrink-0 rounded-lg border border-slate-200 px-2.5 py-2 text-brand-700 lg:hidden sm:px-3"
+            aria-label="Open navigation"
+            aria-controls="tenant-navigation"
+            :aria-expanded="isMenuOpen"
+            @click="isMenuOpen = true"
           >
-            Tenant portal
-          </p>
-          <h1 class="text-lg font-bold">
-            <slot name="title">My dashboard</slot>
-          </h1>
+            ☰
+          </button>
+          <div class="min-w-0">
+            <p
+              class="text-xs font-semibold uppercase tracking-widest text-brand-600"
+            >
+              Tenant portal
+            </p>
+            <h1 class="truncate text-lg font-bold">
+              <slot name="title">My dashboard</slot>
+            </h1>
+          </div>
         </div>
         <div
-          class="flex h-10 w-10 items-center justify-center rounded-full bg-brand-100 font-bold text-brand-700"
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-100 font-bold text-brand-700"
         >
           {{ initials }}
         </div>
       </header>
-      <main class="p-6 sm:p-8"><slot /></main>
+      <main class="min-w-0 p-4 sm:p-6 lg:p-8"><slot /></main>
     </div>
   </div>
 </template>

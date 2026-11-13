@@ -190,7 +190,7 @@ function saveQr() {
                   {{ invitation.expirationDate }}</span
                 >
               </div>
-              <div class="flex items-center gap-3">
+              <div class="flex flex-wrap items-center gap-2 sm:justify-end">
                 <span
                   class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold"
                   >{{ invitation.status }}</span
@@ -232,14 +232,14 @@ function saveQr() {
     </div>
     <div
       v-if="qrInvitation"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4"
+      class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-950/60 p-4 sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="invitation-qr-title"
       @click.self="qrInvitation = null"
     >
       <section
-        class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl sm:p-8"
+        class="max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-4 shadow-2xl sm:p-8"
       >
         <div class="flex items-start justify-between gap-4">
           <div>

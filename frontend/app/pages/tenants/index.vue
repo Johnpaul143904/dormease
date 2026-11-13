@@ -212,7 +212,7 @@ async function removeTenant(tenant: Tenant) {
           </div>
           <select
             v-model="status"
-            class="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+            class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm sm:w-auto"
           >
             <option value="ALL">All statuses</option>
             <option value="ACTIVE">Active</option>
@@ -291,11 +291,11 @@ async function removeTenant(tenant: Tenant) {
 
       <div
         v-if="modalOpen"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
+        class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-950/50 p-4 sm:items-center"
         @click.self="!saving && (modalOpen = false)"
       >
         <form
-          class="max-h-[90vh] w-full max-w-xl space-y-4 overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl"
+          class="max-h-[calc(100dvh-2rem)] w-full max-w-xl space-y-4 overflow-y-auto rounded-2xl bg-white p-4 shadow-2xl sm:p-6"
           @submit.prevent="saveTenant"
         >
           <div class="flex items-start justify-between">

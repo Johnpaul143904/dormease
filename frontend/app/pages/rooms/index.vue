@@ -169,7 +169,7 @@ function badge(value: string) {
           </div>
           <select
             v-model="status"
-            class="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+            class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm md:w-auto"
           >
             <option value="ALL">All statuses</option>
             <option
@@ -181,7 +181,7 @@ function badge(value: string) {
             </option></select
           ><select
             v-model="building"
-            class="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+            class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm md:w-auto"
           >
             <option value="ALL">All buildings</option>
             <option v-for="item in buildings" :key="item">{{ item }}</option>
@@ -256,10 +256,10 @@ function badge(value: string) {
       </section>
       <div
         v-if="showForm"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
+        class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-950/50 p-4 sm:items-center"
       >
         <form
-          class="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl"
+          class="max-h-[calc(100dvh-2rem)] w-full max-w-xl overflow-y-auto rounded-2xl bg-white p-4 shadow-2xl sm:p-6"
           @submit.prevent="saveRoom"
         >
           <div class="flex justify-between">

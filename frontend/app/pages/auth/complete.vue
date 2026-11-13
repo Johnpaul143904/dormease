@@ -63,14 +63,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <main class="mx-auto flex min-h-screen max-w-xl flex-col justify-center p-8">
+  <main class="mx-auto flex min-h-screen max-w-xl flex-col justify-center p-4 sm:p-8">
     <p v-if="isProvisioning" role="status" class="text-slate-600">
       Finishing your DormEase account setup…
     </p>
     <div v-else-if="errorMessage" role="alert">
       <h1 class="text-2xl font-bold">Account setup needs attention</h1>
       <p class="mt-3 text-rose-700">{{ errorMessage }}</p>
-      <div class="mt-6 flex gap-4">
+      <div class="mt-6 flex flex-wrap gap-4">
         <button
           class="font-semibold text-brand-600 hover:text-brand-700"
           @click="completeRegistration"

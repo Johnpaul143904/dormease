@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import {
@@ -10,6 +11,8 @@ import {
   UserRole,
 } from '../generated/prisma/enums';
 import { PrismaService } from '../prisma/prisma.service';
+import { CloudinaryReceiptCleanupService } from '../cloudinary/cloudinary-receipt-cleanup.service';
+import { CloudinaryReceiptStorageService } from '../cloudinary/cloudinary-receipt-storage.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { CreatePaymentSubmissionDto } from './dto/create-payment-submission.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
@@ -48,7 +51,13 @@ const allowedMimeTypes = new Set([
 
 @Injectable()
 export class PaymentsService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(PaymentsService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly receiptStorage: CloudinaryReceiptStorageService,
+    private readonly receiptCleanup: CloudinaryReceiptCleanupService,
+  ) {}
   findAll() {
     return this.prisma.payment.findMany({
       include: {
@@ -124,6 +133,7 @@ export class PaymentsService {
     if (paymentDate > new Date()) {
       throw new BadRequestException('Payment date cannot be in the future');
     }
+    const asset = await this.receiptStorage.upload(file.buffer);
     try {
       return await this.prisma.$transaction(async (tx) => {
         const payment = await tx.payment.findFirst({
@@ -175,7 +185,12 @@ export class PaymentsService {
             proofFileName,
             proofMimeType: file.mimetype,
             proofSize: file.size,
-            proofData: Uint8Array.from(file.buffer),
+            proofData: null,
+            cloudinaryAssetId: asset.assetId,
+            cloudinaryPublicId: asset.publicId,
+            cloudinarySecureUrl: asset.secureUrl,
+            cloudinaryResourceType: asset.resourceType,
+            cloudinaryFormat: asset.format,
           },
           select: paymentSubmissionSelect,
         });
@@ -188,6 +203,24 @@ export class PaymentsService {
         return submission;
       }, { isolationLevel: 'Serializable' });
     } catch (error) {
+      try {
+        await this.receiptStorage.delete(asset.publicId, asset.resourceType);
+      } catch (deleteError) {
+        this.logger.error(
+          `Unable to remove uploaded Cloudinary receipt ${asset.assetId} after submission persistence failed`,
+          deleteError instanceof Error ? deleteError.name : 'Unknown error',
+        );
+        try {
+          await this.receiptCleanup.enqueue(asset);
+        } catch (cleanupError) {
+          this.logger.error(
+            `Unable to queue Cloudinary receipt cleanup ${asset.assetId}`,
+            cleanupError instanceof Error
+              ? cleanupError.name
+              : 'Unknown error',
+          );
+        }
+      }
       if (
         typeof error === 'object' &&
         error !== null &&
@@ -216,6 +249,9 @@ export class PaymentsService {
         proofData: true,
         proofMimeType: true,
         proofFileName: true,
+        cloudinaryPublicId: true,
+        cloudinaryResourceType: true,
+        cloudinaryFormat: true,
       },
     });
     if (!submission) throw new NotFoundException('Payment proof was not found');
@@ -225,8 +261,20 @@ export class PaymentsService {
     ) {
       throw new NotFoundException('Payment proof was not found');
     }
+    const data = submission.proofData
+      ? Buffer.from(submission.proofData)
+      : submission.cloudinaryPublicId &&
+          submission.cloudinaryResourceType &&
+          submission.cloudinaryFormat
+        ? await this.receiptStorage.download(
+            submission.cloudinaryPublicId,
+            submission.cloudinaryResourceType,
+            submission.cloudinaryFormat,
+          )
+        : null;
+    if (!data) throw new NotFoundException('Payment proof was not found');
     return {
-      data: Buffer.from(submission.proofData),
+      data,
       mimeType: submission.proofMimeType,
       fileName: submission.proofFileName,
     };

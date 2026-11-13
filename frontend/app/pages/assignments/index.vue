@@ -135,8 +135,8 @@ async function terminate(id: number) {
       <section
         class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
       >
-        <div class="flex gap-3 border-b border-slate-100 p-4">
-          <div class="relative flex-1">
+        <div class="flex flex-col gap-3 border-b border-slate-100 p-4 sm:flex-row">
+          <div class="relative min-w-0 flex-1">
             <input
               v-model="search"
               type="search"
@@ -148,7 +148,7 @@ async function terminate(id: number) {
           </div>
           <select
             v-model="status"
-            class="rounded-xl border border-slate-200 px-3 text-sm"
+            class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm sm:w-auto"
           >
             <option>ALL</option>
             <option>ACTIVE</option>
@@ -203,9 +203,9 @@ async function terminate(id: number) {
       </section>
       <div
         v-if="showForm"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
+        class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-950/50 p-4 sm:items-center"
       >
-        <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
+        <div class="max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-4 shadow-2xl sm:p-6">
           <div class="flex justify-between">
             <div>
               <h3 class="text-xl font-bold">Assign tenant</h3>

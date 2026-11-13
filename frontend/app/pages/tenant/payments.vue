@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import TenantShell from "~/components/layout/TenantShell.vue";
+import PaymentProofActions from "~/components/payments/PaymentProofActions.vue";
 import StatusBadge from "~/components/ui/StatusBadge.vue";
 import type { Payment } from "~/types/payment";
 
@@ -160,7 +161,14 @@ onBeforeUnmount(() => {
           </p>
         </div>
         <div
-          v-if="!outstandingPayments.length"
+          v-if="operations.loading.value"
+          role="status"
+          class="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500 shadow-sm"
+        >
+          Loading payments…
+        </div>
+        <div
+          v-else-if="!outstandingPayments.length"
           class="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500 shadow-sm"
         >
           No outstanding payments.
@@ -227,7 +235,14 @@ onBeforeUnmount(() => {
             Each submission is retained, including rejected proofs and remarks.
           </p>
         </div>
-        <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div
+          v-if="operations.loading.value"
+          role="status"
+          class="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500 shadow-sm"
+        >
+          Loading payment history…
+        </div>
+        <div v-else class="max-w-full overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
           <table class="w-full min-w-[850px] text-left text-sm">
             <thead class="bg-slate-50 text-xs uppercase text-slate-500">
               <tr>
@@ -271,7 +286,9 @@ onBeforeUnmount(() => {
                       </span>
                     </p>
                   </td>
-                  <td class="px-5 py-4">{{ submission.proofFileName }}</td>
+                  <td class="px-5 py-4">
+                    <PaymentProofActions :submission="submission" />
+                  </td>
                 </tr>
               </template>
               <tr
@@ -288,7 +305,7 @@ onBeforeUnmount(() => {
 
       <section class="space-y-3">
         <h3 class="text-xl font-bold">All payment records</h3>
-        <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="max-w-full overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
           <table class="w-full min-w-[700px] text-left text-sm">
             <thead class="bg-slate-50 text-xs uppercase text-slate-500">
               <tr>
@@ -319,11 +336,11 @@ onBeforeUnmount(() => {
 
       <div
         v-if="showSubmissionForm && selectedPayment"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
+        class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-950/50 p-4 sm:items-center"
         @click.self="closeSubmissionForm"
       >
         <form
-          class="max-h-[92vh] w-full max-w-xl space-y-4 overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl"
+          class="max-h-[calc(100dvh-2rem)] w-full max-w-xl space-y-4 overflow-y-auto rounded-2xl bg-white p-4 shadow-2xl sm:p-6"
           @submit.prevent="submitProof"
         >
           <div class="flex items-start justify-between gap-4">
@@ -372,11 +389,11 @@ onBeforeUnmount(() => {
           <p v-if="formError" role="alert" class="rounded-lg bg-rose-50 p-3 text-sm text-rose-700">
             {{ formError }}
           </p>
-          <div class="flex justify-end gap-3">
-            <button type="button" class="rounded-xl px-4 py-2.5 font-semibold text-slate-600" @click="closeSubmissionForm">
+          <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <button type="button" class="w-full rounded-xl px-4 py-2.5 font-semibold text-slate-600 sm:w-auto" @click="closeSubmissionForm">
               Cancel
             </button>
-            <button type="submit" :disabled="isSubmitting" class="rounded-xl bg-brand-600 px-4 py-2.5 font-semibold text-white disabled:opacity-60">
+            <button type="submit" :disabled="isSubmitting" class="w-full rounded-xl bg-brand-600 px-4 py-2.5 font-semibold text-white disabled:opacity-60 sm:w-auto">
               {{ isSubmitting ? "Submitting…" : "Submit for verification" }}
             </button>
           </div>

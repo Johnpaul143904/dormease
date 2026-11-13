@@ -263,28 +263,22 @@ function closeSearchResults() {
 
 <template>
   <div class="min-h-screen bg-slate-50 text-slate-900">
-    <div
+    <button
       v-if="isMenuOpen"
       class="admin-sidebar-overlay"
+      type="button"
+      aria-label="Close navigation"
       @click="isMenuOpen = false"
-    ></div>
+    ></button>
     <aside
       class="admin-sidebar"
       :class="{ 'admin-sidebar-open': isMenuOpen }"
-      style="
-        display: flex;
-        position: fixed;
-        inset: 0 auto 0 0;
-        width: 240px;
-        z-index: 9999;
-        flex-direction: column;
-        background: #1e3a8a;
-        color: white;
-      "
+      id="admin-navigation"
     >
       <NuxtLink
         to="/admin/dashboard"
         class="flex items-center gap-3 px-5 py-7 text-lg font-bold"
+        @click="isMenuOpen = false"
       >
         <span
           class="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-brand-700"
@@ -333,14 +327,16 @@ function closeSearchResults() {
         </button>
       </div>
     </aside>
-    <div class="admin-content" style="min-height: 100vh; padding-left: 240px">
+    <div class="admin-content">
       <header
-        class="sticky top-0 z-20 flex min-h-20 items-center justify-between gap-5 border-b border-slate-200 bg-white/95 px-5 py-4 backdrop-blur sm:px-8"
+        class="sticky top-0 z-20 flex min-h-20 items-center justify-between gap-2 border-b border-slate-200 bg-white/95 px-3 py-3 backdrop-blur sm:gap-5 sm:px-8 sm:py-4"
       >
-        <div class="flex min-w-0 flex-1 items-center gap-4">
+        <div class="flex min-w-0 flex-1 items-center gap-2 sm:gap-4">
           <button
-            class="admin-menu-button rounded-lg border border-slate-200 px-3 py-2 text-brand-700 lg:hidden"
+            class="admin-menu-button min-h-11 min-w-11 shrink-0 rounded-lg border border-slate-200 px-2.5 py-2 text-brand-700 lg:hidden sm:px-3"
             aria-label="Open navigation"
+            aria-controls="admin-navigation"
+            :aria-expanded="isMenuOpen"
             @click="isMenuOpen = true"
           >
             ☰
@@ -355,7 +351,7 @@ function closeSearchResults() {
               <slot name="title">Dashboard overview</slot>
             </h1>
           </div>
-          <label class="relative block w-full max-w-sm"
+          <label class="relative block min-w-0 w-full max-w-sm flex-1"
             ><span class="sr-only">Search</span
             ><span
               class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400"
@@ -424,7 +420,7 @@ function closeSearchResults() {
             </div>
           </label>
         </div>
-        <div class="relative flex items-center gap-4">
+        <div class="relative flex shrink-0 items-center gap-3 sm:gap-4">
           <button
             class="relative text-xl text-slate-400"
             aria-label="Notifications"
@@ -461,7 +457,7 @@ function closeSearchResults() {
           </div>
         </div>
       </header>
-      <main class="p-6 sm:p-8"><slot /></main>
+      <main class="min-w-0 p-4 sm:p-6 lg:p-8"><slot /></main>
     </div>
   </div>
 </template>

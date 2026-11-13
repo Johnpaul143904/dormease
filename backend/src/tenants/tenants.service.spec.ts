@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TenantsService } from './tenants.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { ClerkIdentityService } from '../auth/clerk-identity.service';
+import { CloudinaryReceiptCleanupService } from '../cloudinary/cloudinary-receipt-cleanup.service';
 
 describe('TenantsService', () => {
   let service: TenantsService;
@@ -10,6 +11,8 @@ describe('TenantsService', () => {
     user: { update: jest.fn(), delete: jest.fn() },
     maintenanceRequest: { deleteMany: jest.fn(), updateMany: jest.fn() },
     payment: { deleteMany: jest.fn() },
+    paymentSubmission: { findMany: jest.fn() },
+    cloudinaryReceiptDeletion: { createMany: jest.fn() },
     roomInvitation: { deleteMany: jest.fn() },
     roomAssignment: { deleteMany: jest.fn(), count: jest.fn() },
     room: { findUnique: jest.fn(), update: jest.fn() },
@@ -23,14 +26,22 @@ describe('TenantsService', () => {
     ),
   };
   const clerkIdentity = { getVerifiedIdentity: jest.fn() };
+  const receiptCleanup = { processPending: jest.fn() };
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    tx.paymentSubmission.findMany.mockReset().mockResolvedValue([]);
+    tx.cloudinaryReceiptDeletion.createMany.mockReset();
+    receiptCleanup.processPending.mockReset().mockResolvedValue(undefined);
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TenantsService,
         { provide: PrismaService, useValue: prismaMock },
         { provide: ClerkIdentityService, useValue: clerkIdentity },
+        {
+          provide: CloudinaryReceiptCleanupService,
+          useValue: receiptCleanup,
+        },
       ],
     }).compile();
 
@@ -144,9 +155,38 @@ describe('TenantsService', () => {
     });
     expect(tx.tenant.delete).toHaveBeenCalledWith({ where: { id: 1 } });
     expect(tx.user.delete).toHaveBeenCalledWith({ where: { id: 2 } });
+    expect(receiptCleanup.processPending).toHaveBeenCalled();
     expect(tx.room.update).toHaveBeenCalledWith({
       where: { id: 7 },
       data: { status: 'OCCUPIED' },
+    });
+  });
+
+  it('queues Cloudinary receipt deletion in the tenant transaction', async () => {
+    tx.tenant.findUnique.mockResolvedValue({
+      id: 1,
+      userId: 2,
+      assignments: [],
+    });
+    tx.paymentSubmission.findMany.mockResolvedValue([
+      {
+        cloudinaryAssetId: 'asset-1',
+        cloudinaryPublicId: 'dormease/payment-receipts/asset-1',
+        cloudinaryResourceType: 'image',
+      },
+    ]);
+
+    await service.remove(1);
+
+    expect(tx.cloudinaryReceiptDeletion.createMany).toHaveBeenCalledWith({
+      data: [
+        {
+          assetId: 'asset-1',
+          publicId: 'dormease/payment-receipts/asset-1',
+          resourceType: 'image',
+        },
+      ],
+      skipDuplicates: true,
     });
   });
 

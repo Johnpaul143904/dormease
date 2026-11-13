@@ -144,24 +144,24 @@ const tenantName = (id: number) =>
         </p>
       </div>
 
-      <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard v-for="stat in stats" :key="stat.label" v-bind="stat" />
       </div>
 
       <div
-        class="grid gap-5 xl:grid-cols-[minmax(0,1.7fr)_minmax(280px,0.8fr)]"
+        class="grid gap-5 lg:grid-cols-[minmax(0,1.7fr)_minmax(280px,0.8fr)]"
       >
         <section
           class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
         >
-          <div class="flex items-center justify-between">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 class="font-bold text-slate-900">Newly joined vs left</h3>
               <p class="mt-1 text-sm text-slate-500">
                 Tenant movement over the last 8 months
               </p>
             </div>
-            <div class="flex gap-4 text-xs text-slate-500">
+            <div class="flex flex-wrap gap-x-4 gap-y-2 text-xs text-slate-500">
               <span
                 ><i
                   class="mr-1 inline-block h-2.5 w-2.5 rounded-full bg-brand-500"
@@ -264,7 +264,7 @@ const tenantName = (id: number) =>
               >View all</NuxtLink
             >
           </div>
-          <div class="overflow-x-auto">
+          <div class="max-w-full overflow-x-auto">
             <table class="w-full min-w-[560px] text-left text-sm">
               <thead
                 class="bg-slate-50 text-xs uppercase tracking-wider text-slate-500"

@@ -71,9 +71,14 @@ export type RoomAssignment = Prisma.RoomAssignmentModel
 export type Payment = Prisma.PaymentModel
 /**
  * Model PaymentSubmission
- * 
+ *
  */
 export type PaymentSubmission = Prisma.PaymentSubmissionModel
+/**
+ * Model CloudinaryReceiptDeletion
+ *
+ */
+export type CloudinaryReceiptDeletion = Prisma.CloudinaryReceiptDeletionModel
 /**
  * Model PaymentVerificationHistory
  * 

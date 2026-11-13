@@ -58,6 +58,7 @@ export const ModelName = {
   RoomAssignment: 'RoomAssignment',
   Payment: 'Payment',
   PaymentSubmission: 'PaymentSubmission',
+  CloudinaryReceiptDeletion: 'CloudinaryReceiptDeletion',
   PaymentVerificationHistory: 'PaymentVerificationHistory',
   MaintenanceRequest: 'MaintenanceRequest',
   MaintenanceStatusHistory: 'MaintenanceStatusHistory',
@@ -179,6 +180,11 @@ export const PaymentSubmissionScalarFieldEnum = {
   proofMimeType: 'proofMimeType',
   proofSize: 'proofSize',
   proofData: 'proofData',
+  cloudinaryAssetId: 'cloudinaryAssetId',
+  cloudinaryPublicId: 'cloudinaryPublicId',
+  cloudinarySecureUrl: 'cloudinarySecureUrl',
+  cloudinaryResourceType: 'cloudinaryResourceType',
+  cloudinaryFormat: 'cloudinaryFormat',
   status: 'status',
   rejectionRemarks: 'rejectionRemarks',
   verifiedAt: 'verifiedAt',
@@ -187,6 +193,19 @@ export const PaymentSubmissionScalarFieldEnum = {
 } as const
 
 export type PaymentSubmissionScalarFieldEnum = (typeof PaymentSubmissionScalarFieldEnum)[keyof typeof PaymentSubmissionScalarFieldEnum]
+
+
+export const CloudinaryReceiptDeletionScalarFieldEnum = {
+  assetId: 'assetId',
+  publicId: 'publicId',
+  resourceType: 'resourceType',
+  attempts: 'attempts',
+  nextAttemptAt: 'nextAttemptAt',
+  lastError: 'lastError',
+  createdAt: 'createdAt'
+} as const
+
+export type CloudinaryReceiptDeletionScalarFieldEnum = (typeof CloudinaryReceiptDeletionScalarFieldEnum)[keyof typeof CloudinaryReceiptDeletionScalarFieldEnum]
 
 
 export const PaymentVerificationHistoryScalarFieldEnum = {
