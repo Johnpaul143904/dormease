@@ -26,7 +26,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
   if (/^\/invitations\/accept\/[^/]+$/.test(to.path)) return;
   if (import.meta.server) return;
 
-  const clerkAuth = useAuth();
+  const vueApp = useNuxtApp().vueApp;
+  const { clerkAuth, auth } = vueApp.runWithContext(() => ({
+    clerkAuth: useAuth(),
+    auth: useDormEaseAuth(),
+  }));
   if (!clerkAuth.isLoaded.value) {
     await new Promise<void>((resolve) => {
       const stop = watch(clerkAuth.isLoaded, (isLoaded) => {
@@ -45,7 +49,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
     );
   }
 
-  const auth = useDormEaseAuth();
   try {
     const restored = await auth.restoreSession();
     if (!restored || !auth.isAuthenticated.value || !auth.role.value) {
