@@ -14,6 +14,7 @@ export default defineNuxtConfig({
     publishableKey:
       process.env.NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
       process.env.CLERK_PUBLISHABLE_KEY,
+    proxyUrl: '/__clerk',
     signInUrl: '/login',
     signUpUrl: '/register',
     signInForceRedirectUrl: '/dashboard',
