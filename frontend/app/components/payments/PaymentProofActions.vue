@@ -8,19 +8,60 @@ const props = defineProps<{
   >;
 }>();
 
+const api = useApi();
+const route = useRoute();
 const loadingAction = ref<"preview" | "download" | null>(null);
 const error = ref("");
 const previewUrl = ref("");
 const previewType = ref("");
 
 async function fetchProof() {
-  const api = useApi();
   const blob = await api.request<Blob>(
     `/payments/submissions/${props.submission.id}/proof`,
     { responseType: "blob" },
   );
   if (!blob.size) throw new Error("The receipt file is empty.");
   return blob;
+}
+
+function getErrorStatus(caught: unknown) {
+  if (typeof caught !== "object" || caught === null) return undefined;
+  if ("statusCode" in caught && typeof caught.statusCode === "number") {
+    return caught.statusCode;
+  }
+  if ("status" in caught && typeof caught.status === "number") {
+    return caught.status;
+  }
+  if (
+    "response" in caught &&
+    typeof caught.response === "object" &&
+    caught.response !== null &&
+    "status" in caught.response &&
+    typeof caught.response.status === "number"
+  ) {
+    return caught.response.status;
+  }
+  return undefined;
+}
+
+async function handleActionError(caught: unknown, fallback: string) {
+  const status = getErrorStatus(caught);
+  if (status === 401) {
+    await navigateTo(
+      {
+        path: "/login",
+        query: { redirect: route.fullPath, authError: "session" },
+      },
+      { replace: true },
+    );
+    return;
+  }
+  error.value =
+    status === 404
+      ? "Receipt not found or you do not have permission to view it."
+      : caught instanceof Error
+        ? caught.message
+        : fallback;
 }
 
 async function previewProof() {
@@ -37,8 +78,7 @@ async function previewProof() {
     previewUrl.value = URL.createObjectURL(blob);
     previewType.value = mimeType;
   } catch (caught) {
-    error.value =
-      caught instanceof Error ? caught.message : "Unable to open receipt.";
+    await handleActionError(caught, "Unable to open receipt.");
   } finally {
     loadingAction.value = null;
   }
@@ -59,8 +99,7 @@ async function downloadProof() {
     link.click();
     link.remove();
   } catch (caught) {
-    error.value =
-      caught instanceof Error ? caught.message : "Unable to download receipt.";
+    await handleActionError(caught, "Unable to download receipt.");
   } finally {
     if (objectUrl) window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
     loadingAction.value = null;
