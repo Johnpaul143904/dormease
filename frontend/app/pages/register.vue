@@ -121,7 +121,7 @@ watch([accountType, invitationCode], saveRegistrationChoice, {
 
         <SignUp
           path="/register"
-          routing="hash"
+          routing="path"
           sign-in-url="/login"
           force-redirect-url="/auth/complete"
           fallback-redirect-url="/auth/complete"
