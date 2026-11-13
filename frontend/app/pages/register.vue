@@ -120,7 +120,7 @@ watch([accountType, invitationCode], saveRegistrationChoice, {
         </fieldset>
 
         <SignUp
-          :path="/register"
+          path="/register"
           routing="path"
           sign-in-url="/login"
           force-redirect-url="/auth/complete"
