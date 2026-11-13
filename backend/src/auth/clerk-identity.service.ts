@@ -54,35 +54,15 @@ export class ClerkIdentityService {
       throw new UnauthorizedException('Clerk account is not active');
     }
 
-    const primaryEmail =
-      user.primaryEmailAddress ??
-      (user.emailAddresses && user.emailAddresses.length > 0
-        ? user.emailAddresses.find((e) => e.id === user.primaryEmailAddressId) ??
-          user.emailAddresses[0]
-        : null);
-
-    if (!primaryEmail) {
-      if (user.username) {
-        return {
-          clerkUserId: user.id,
-          email: `${user.username.trim().toLowerCase()}@dormease.local`,
-          fullName: user.username.trim(),
-        };
-      }
+    const primaryEmail = user.primaryEmailAddress;
+    if (!primaryEmail || primaryEmail.verification?.status !== 'verified') {
       throw new ForbiddenException('A verified primary email is required');
     }
 
-    if (primaryEmail.verification?.status !== 'verified') {
-      throw new ForbiddenException('A verified primary email is required');
-    }
-
-    const fullName =
-      [user.firstName, user.lastName]
-        .filter((name): name is string => Boolean(name?.trim()))
-        .join(' ')
-        .trim() ||
-      user.username?.trim() ||
-      primaryEmail.emailAddress.slice(0, primaryEmail.emailAddress.indexOf('@'));
+    const fullName = [user.firstName, user.lastName]
+      .filter((name): name is string => Boolean(name?.trim()))
+      .join(' ')
+      .trim();
 
     return {
       clerkUserId: user.id,

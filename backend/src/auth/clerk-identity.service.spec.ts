@@ -92,44 +92,4 @@ describe('ClerkIdentityService', () => {
       service.getVerifiedIdentity('user_clerk_123'),
     ).rejects.toBeInstanceOf(ForbiddenException);
   });
-
-  it('supports username-based registration when no email is provided', async () => {
-    clerkClient.users.getUser.mockResolvedValue({
-      id: 'user_clerk_user_only',
-      banned: false,
-      locked: false,
-      deprovisioned: false,
-      username: 'sample_resident',
-    });
-
-    await expect(
-      service.getVerifiedIdentity('user_clerk_user_only'),
-    ).resolves.toEqual({
-      clerkUserId: 'user_clerk_user_only',
-      email: 'sample_resident@dormease.local',
-      fullName: 'sample_resident',
-    });
-  });
-
-  it('uses username as fullName when firstName and lastName are missing', async () => {
-    clerkClient.users.getUser.mockResolvedValue({
-      id: 'user_clerk_user_and_email',
-      banned: false,
-      locked: false,
-      deprovisioned: false,
-      username: 'resident_42',
-      primaryEmailAddress: {
-        emailAddress: 'resident42@example.com',
-        verification: { status: 'verified' },
-      },
-    });
-
-    await expect(
-      service.getVerifiedIdentity('user_clerk_user_and_email'),
-    ).resolves.toEqual({
-      clerkUserId: 'user_clerk_user_and_email',
-      email: 'resident42@example.com',
-      fullName: 'resident_42',
-    });
-  });
 });

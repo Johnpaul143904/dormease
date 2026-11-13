@@ -1,15 +1,3 @@
-const publishableKey =
-  process.env.NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
-  process.env.CLERK_PUBLISHABLE_KEY ||
-  '';
-const isDevelopmentKey = publishableKey.startsWith('pk_test_');
-const clerkProxyUrl =
-  process.env.NUXT_PUBLIC_CLERK_PROXY_URL ||
-  process.env.CLERK_PROXY_URL ||
-  (!isDevelopmentKey && process.env.ENABLE_CLERK_PROXY === 'true'
-    ? '/__clerk'
-    : undefined);
-
 export default defineNuxtConfig({
   compatibilityDate: '2026-11-04',
 
@@ -23,8 +11,10 @@ export default defineNuxtConfig({
   ],
 
   clerk: {
-    publishableKey,
-    ...(clerkProxyUrl ? { proxyUrl: clerkProxyUrl } : {}),
+    publishableKey:
+      process.env.NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
+      process.env.CLERK_PUBLISHABLE_KEY,
+    proxyUrl: '/__clerk',
     signInUrl: '/login',
     signUpUrl: '/register',
     signInForceRedirectUrl: '/dashboard',

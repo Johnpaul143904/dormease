@@ -6,54 +6,32 @@ definePageMeta({ layout: "auth" });
 
 const storageKey = "dormease-registration";
 const auth = useDormEaseAuth();
-const clerkUser = useUser();
 const isProvisioning = ref(true);
 const errorMessage = ref("");
 
 function getRegistrationChoice(): RegistrationPayload {
-  if (import.meta.client) {
-    const raw = window.sessionStorage.getItem(storageKey);
-    if (raw) {
-      try {
-        const value: unknown = JSON.parse(raw);
-        if (
-          typeof value === "object" &&
-          value !== null &&
-          "accountType" in value
-        ) {
-          const accountType = (value as { accountType: unknown }).accountType;
-          if (accountType === "TENANT" || accountType === "ADMIN") {
-            const code = (value as { invitationCode?: unknown }).invitationCode;
-            return {
-              accountType,
-              ...(typeof code === "string" && code.trim()
-                ? { invitationCode: code.trim() }
-                : {}),
-            };
-          }
-        }
-      } catch {
-        // Fall back to clerk unsafe metadata
-      }
+  const raw = window.sessionStorage.getItem(storageKey);
+  if (!raw) return { accountType: "TENANT" };
+
+  const value: unknown = JSON.parse(raw);
+  if (typeof value !== "object" || value === null || !("accountType" in value)) {
+    throw new Error("Registration details are invalid. Please restart signup.");
+  }
+  if (value.accountType !== "TENANT" && value.accountType !== "ADMIN") {
+    throw new Error("Registration details are invalid. Please restart signup.");
+  }
+  let invitationCode: string | undefined;
+  if ("invitationCode" in value) {
+    if (typeof value.invitationCode !== "string") {
+      throw new Error("Registration details are invalid. Please restart signup.");
     }
+    invitationCode = value.invitationCode;
   }
 
-  const unsafe = clerkUser.user.value?.unsafeMetadata as
-    | Record<string, unknown>
-    | undefined;
-  if (
-    unsafe &&
-    (unsafe.accountType === "TENANT" || unsafe.accountType === "ADMIN")
-  ) {
-    return {
-      accountType: unsafe.accountType,
-      ...(typeof unsafe.invitationCode === "string" && unsafe.invitationCode.trim()
-        ? { invitationCode: unsafe.invitationCode.trim() }
-        : {}),
-    };
-  }
-
-  return { accountType: "TENANT" };
+  return {
+    accountType: value.accountType,
+    ...(invitationCode ? { invitationCode } : {}),
+  };
 }
 
 async function completeRegistration() {
@@ -65,9 +43,7 @@ async function completeRegistration() {
       await navigateTo("/login", { replace: true });
       return;
     }
-    if (import.meta.client) {
-      window.sessionStorage.removeItem(storageKey);
-    }
+    window.sessionStorage.removeItem(storageKey);
     await navigateTo(dashboardRouteForRole(auth.role.value), {
       replace: true,
     });

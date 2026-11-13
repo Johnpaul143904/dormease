@@ -7,19 +7,15 @@ const storageKey = "dormease-registration";
 const accountType = ref<"TENANT" | "ADMIN">("TENANT");
 const invitationCode = ref("");
 
-const registrationPayload = computed<RegistrationPayload>(() => ({
-  accountType: accountType.value,
-  ...(accountType.value === "ADMIN" && invitationCode.value.trim()
-    ? { invitationCode: invitationCode.value.trim() }
-    : {}),
-}));
-
 function saveRegistrationChoice() {
   if (!import.meta.client) return;
-  window.sessionStorage.setItem(
-    storageKey,
-    JSON.stringify(registrationPayload.value),
-  );
+  const payload: RegistrationPayload = {
+    accountType: accountType.value,
+    ...(accountType.value === "ADMIN" && invitationCode.value
+      ? { invitationCode: invitationCode.value }
+      : {}),
+  };
+  window.sessionStorage.setItem(storageKey, JSON.stringify(payload));
 }
 
 watch([accountType, invitationCode], saveRegistrationChoice, {
@@ -124,11 +120,11 @@ watch([accountType, invitationCode], saveRegistrationChoice, {
         </fieldset>
 
         <SignUp
-          routing="hash"
+          :path="$route.path"
+          routing="path"
           sign-in-url="/login"
           force-redirect-url="/auth/complete"
           fallback-redirect-url="/auth/complete"
-          :unsafe-metadata="registrationPayload"
         />
       </div>
     </section>

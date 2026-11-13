@@ -46,30 +46,12 @@ export const useDormEaseAuth = () => {
       return false;
     }
 
-    let payload: RegistrationPayload = { ...registration };
-    if (!payload.accountType || payload.accountType === "TENANT") {
-      const unsafe = clerkUser.user.value?.unsafeMetadata as
-        | Record<string, unknown>
-        | undefined;
-      if (
-        unsafe &&
-        (unsafe.accountType === "TENANT" || unsafe.accountType === "ADMIN")
-      ) {
-        payload = {
-          accountType: unsafe.accountType,
-          ...(typeof unsafe.invitationCode === "string" && unsafe.invitationCode.trim()
-            ? { invitationCode: unsafe.invitationCode.trim() }
-            : {}),
-        };
-      }
-    }
-
     let response: AuthResponse;
     try {
       response = await authApi.profile();
     } catch (error) {
       if (getErrorStatus(error) !== 401) throw error;
-      await authApi.register(payload);
+      await authApi.register(registration);
       response = await authApi.profile();
     }
 
