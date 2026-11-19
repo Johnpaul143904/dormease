@@ -5,26 +5,12 @@ export const useApi = () => {
   const fetcher: typeof $fetch = import.meta.server
     ? useRequestFetch()
     : $fetch;
-
-  async function waitForClerk() {
-    if (clerkAuth.isLoaded.value) return;
-    await new Promise<void>((resolve) => {
-      const stop = watch(clerkAuth.isLoaded, (isLoaded) => {
-        if (isLoaded) {
-          stop();
-          resolve();
-        }
-      });
-    });
-  }
-
   return {
     apiBase,
     request: async <T>(
       path: string,
       options: Parameters<typeof $fetch<T>>[1] = {},
     ) => {
-      await waitForClerk();
       const token = await clerkAuth.getToken.value();
       const headers = new Headers(options.headers);
       if (token) {

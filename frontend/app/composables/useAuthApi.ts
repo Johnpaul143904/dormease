@@ -8,16 +8,10 @@ export function useAuthApi() {
   const api = useApi();
 
   return {
-    register(payload: RegistrationPayload = {}) {
-      const normalizedPayload: RegistrationPayload = {
-        accountType: payload.accountType ?? "TENANT",
-        ...(payload.invitationCode
-          ? { invitationCode: payload.invitationCode }
-          : {}),
-      };
+    register(payload: RegistrationPayload = { accountType: "TENANT" }) {
       return api.request<AuthResponse>("/auth/register", {
         method: "POST",
-        body: normalizedPayload,
+        body: payload,
       });
     },
     profile() {

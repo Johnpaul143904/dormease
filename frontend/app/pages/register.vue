@@ -119,18 +119,13 @@ watch([accountType, invitationCode], saveRegistrationChoice, {
           </label>
         </fieldset>
 
-        <ClientOnly>
-          <SignUp
-            path="/register"
-            routing="path"
-            sign-in-url="/login"
-            force-redirect-url="/auth/complete"
-            fallback-redirect-url="/auth/complete"
-          />
-          <template #fallback>
-            <div class="h-80 animate-pulse rounded-2xl bg-slate-100"></div>
-          </template>
-        </ClientOnly>
+        <SignUp
+          path="/register"
+          routing="path"
+          sign-in-url="/login"
+          force-redirect-url="/auth/complete"
+          fallback-redirect-url="/auth/complete"
+        />
       </div>
     </section>
   </main>

@@ -18,10 +18,6 @@ export const useDormEaseAuth = () => {
   const user = useState<AuthResponse["user"] | null>("auth-user", () => null);
   const role = useState<UserRole | null>("auth-role", () => null);
   const isAuthenticated = useState("is-authenticated", () => false);
-  const provisioning = useState<Promise<AuthResponse> | null>(
-    "auth-provisioning",
-    () => null,
-  );
 
   function applyProfile(response: AuthResponse) {
     user.value = response.user;
@@ -41,9 +37,7 @@ export const useDormEaseAuth = () => {
     });
   }
 
-  async function restoreSession(
-    registration: RegistrationPayload = { accountType: "TENANT" },
-  ) {
+  async function restoreSession(registration: RegistrationPayload = {}) {
     await waitForClerk();
     if (!clerkAuth.isSignedIn.value) {
       user.value = null;
@@ -57,20 +51,7 @@ export const useDormEaseAuth = () => {
       response = await authApi.profile();
     } catch (error) {
       if (getErrorStatus(error) !== 401) throw error;
-      const normalizedRegistration: RegistrationPayload = {
-        accountType: registration.accountType ?? "TENANT",
-        ...(registration.invitationCode
-          ? { invitationCode: registration.invitationCode }
-          : {}),
-      };
-      if (!provisioning.value) {
-        provisioning.value = authApi.register(normalizedRegistration);
-      }
-      try {
-        await provisioning.value;
-      } finally {
-        provisioning.value = null;
-      }
+      await authApi.register(registration);
       response = await authApi.profile();
     }
 

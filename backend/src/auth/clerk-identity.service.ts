@@ -23,13 +23,6 @@ export class ClerkIdentityService {
     this.authorizedParties = configuredParties
       .split(',')
       .map((party) => party.trim().replace(/\/+$/, ''))
-      .map((party) => {
-        try {
-          return new URL(party).origin;
-        } catch {
-          return party;
-        }
-      })
       .filter(Boolean);
 
     if (!this.authorizedParties.length) {
