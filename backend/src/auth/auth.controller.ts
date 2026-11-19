@@ -22,7 +22,7 @@ export class AuthController {
   @Post('register')
   @AllowUnlinkedClerkUser()
   @UseGuards(ThrottlerGuard)
-  @Throttle({ default: { limit: 5, ttl: 15 * 60 * 1000 } })
+  @Throttle({ default: { limit: 10, ttl: 15 * 60 * 1000 } })
   register(@Req() request: AuthenticatedRequest, @Body() dto: RegisterDto) {
     if (!request.clerkUserId) {
       throw new UnauthorizedException('A Clerk session is required');
