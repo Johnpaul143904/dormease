@@ -1,4 +1,4 @@
-import { roleRouteRedirect } from "~/types/auth";
+import { dashboardRouteForRole, roleRouteRedirect } from "~/types/auth";
 
 function getErrorStatus(error: unknown) {
   if (typeof error !== "object" || error === null) return undefined;
@@ -12,9 +12,9 @@ function getErrorStatus(error: unknown) {
 }
 
 export default defineNuxtRouteMiddleware(async (to) => {
+  const isLoginPage = to.path === "/login";
   if (
     [
-      "/login",
       "/register",
       "/forgot-password",
       "/reset-password",
@@ -44,6 +44,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   }
 
   if (!clerkAuth.isSignedIn.value) {
+    if (isLoginPage) return;
     return navigateTo(
       { path: "/login", query: { redirect: to.fullPath } },
       { replace: true },
@@ -53,10 +54,23 @@ export default defineNuxtRouteMiddleware(async (to) => {
   try {
     const restored = await auth.restoreSession();
     if (!restored || !auth.isAuthenticated.value || !auth.role.value) {
+      if (isLoginPage) return;
       return navigateTo("/login", { replace: true });
     }
   } catch (error) {
     const status = getErrorStatus(error);
+    if (isLoginPage) {
+      if (to.query.authError) return;
+      return navigateTo(
+        {
+          path: "/login",
+          query: {
+            authError: status === 403 ? "verify-email" : "session",
+          },
+        },
+        { replace: true },
+      );
+    }
     return navigateTo(
       {
         path: "/login",
@@ -67,6 +81,12 @@ export default defineNuxtRouteMiddleware(async (to) => {
       },
       { replace: true },
     );
+  }
+
+  if (isLoginPage) {
+    return navigateTo(dashboardRouteForRole(auth.role.value), {
+      replace: true,
+    });
   }
 
   const redirect = roleRouteRedirect(to.path, auth.role.value);

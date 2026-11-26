@@ -150,6 +150,17 @@ export function useDormData() {
   const loading = useState("dorm-data-loading", () => false);
   const error = useState("dorm-data-error", () => "");
 
+  function clearCache() {
+    rooms.value = [];
+    tenants.value = [];
+    assignments.value = [];
+    invitations.value = [];
+    myRoomRequests.value = [];
+    currentTenantId.value = null;
+    loading.value = false;
+    error.value = "";
+  }
+
   async function loadFromApi() {
     loading.value = true;
     error.value = "";
@@ -424,6 +435,7 @@ export function useDormData() {
     currentTenantId,
     loading,
     error,
+    clearCache,
     loadFromApi,
     loadTenantData,
     loadInvitations,

@@ -25,6 +25,15 @@ export function useOperations() {
   const error = useState("operations-error", () => "");
   const api = useApi();
 
+  function clearCache() {
+    payments.value = [];
+    paymentSubmissions.value = [];
+    maintenance.value = [];
+    publicMaintenance.value = [];
+    loading.value = false;
+    error.value = "";
+  }
+
   async function loadFromApi(forTenant = false) {
     loading.value = true;
     error.value = "";
@@ -306,6 +315,7 @@ export function useOperations() {
     publicMaintenance,
     loading,
     error,
+    clearCache,
     loadFromApi,
     updateMaintenanceStatus,
     loadPublicMaintenance,

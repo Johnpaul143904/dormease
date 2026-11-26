@@ -2,14 +2,6 @@
 definePageMeta({ layout: "auth" });
 
 const route = useRoute();
-const redirect = route.query.redirect;
-const redirectUrl =
-  typeof redirect === "string" &&
-  redirect.startsWith("/") &&
-  !redirect.startsWith("//") &&
-  !redirect.includes("\\")
-    ? redirect
-    : "/dashboard";
 const authError =
   route.query.authError === "verify-email"
     ? "Verify your primary email address with Clerk, then sign in again."
@@ -93,8 +85,8 @@ const authError =
           :path="route.path"
           routing="path"
           sign-up-url="/register"
-          :force-redirect-url="redirectUrl"
-          :fallback-redirect-url="redirectUrl"
+          force-redirect-url="/dashboard"
+          fallback-redirect-url="/dashboard"
         />
       </div>
     </section>

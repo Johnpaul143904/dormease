@@ -18,11 +18,22 @@ export const useDormEaseAuth = () => {
   const user = useState<AuthResponse["user"] | null>("auth-user", () => null);
   const role = useState<UserRole | null>("auth-role", () => null);
   const isAuthenticated = useState("is-authenticated", () => false);
+  const logoutError = useState("auth-logout-error", () => "");
+
+  function clearApplicationState() {
+    user.value = null;
+    role.value = null;
+    isAuthenticated.value = false;
+    useDormData().clearCache();
+    useOperations().clearCache();
+    useRecordSearch().clearCache();
+  }
 
   function applyProfile(response: AuthResponse) {
     user.value = response.user;
     role.value = response.user.role;
     isAuthenticated.value = true;
+    logoutError.value = "";
   }
 
   async function waitForClerk() {
@@ -40,42 +51,52 @@ export const useDormEaseAuth = () => {
   async function restoreSession(registration: RegistrationPayload = {}) {
     await waitForClerk();
     if (!clerkAuth.isSignedIn.value) {
-      user.value = null;
-      role.value = null;
-      isAuthenticated.value = false;
+      clearApplicationState();
       return false;
     }
 
-    let response: AuthResponse;
     try {
-      response = await authApi.profile();
+      let response: AuthResponse;
+      try {
+        response = await authApi.profile();
+      } catch (error) {
+        if (getErrorStatus(error) !== 401) throw error;
+        await authApi.register(registration);
+        response = await authApi.profile();
+      }
+
+      const primaryEmail = clerkUser.user.value?.primaryEmailAddress;
+      const verifiedEmail =
+        primaryEmail?.verification?.status === "verified"
+          ? primaryEmail.emailAddress.trim().toLowerCase()
+          : null;
+      if (verifiedEmail && verifiedEmail !== response.user.email.toLowerCase()) {
+        response = await authApi.updateProfile({ email: verifiedEmail });
+      }
+
+      applyProfile(response);
+      return true;
     } catch (error) {
-      if (getErrorStatus(error) !== 401) throw error;
-      await authApi.register(registration);
-      response = await authApi.profile();
+      clearApplicationState();
+      throw error;
     }
-
-    const primaryEmail = clerkUser.user.value?.primaryEmailAddress;
-    const verifiedEmail =
-      primaryEmail?.verification?.status === "verified"
-        ? primaryEmail.emailAddress.trim().toLowerCase()
-        : null;
-    if (verifiedEmail && verifiedEmail !== response.user.email.toLowerCase()) {
-      response = await authApi.updateProfile({ email: verifiedEmail });
-    }
-
-    applyProfile(response);
-    return true;
   }
 
   async function logout() {
+    logoutError.value = "";
+    let signedOut = false;
     try {
       await clerkAuth.signOut.value();
+      signedOut = true;
+    } catch (error) {
+      logoutError.value =
+        error instanceof Error ? error.message : "Unable to sign out.";
     } finally {
-      user.value = null;
-      role.value = null;
-      isAuthenticated.value = false;
-      await navigateTo("/login");
+      clearApplicationState();
+    }
+
+    if (signedOut) {
+      await navigateTo("/login", { replace: true });
     }
   }
 
@@ -83,6 +104,7 @@ export const useDormEaseAuth = () => {
     isAuthenticated,
     role,
     user,
+    logoutError,
     applyProfile,
     restoreSession,
     logout,

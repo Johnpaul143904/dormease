@@ -80,6 +80,13 @@ const initials = computed(
         >
           ↪ <span>Logout</span>
         </button>
+        <p
+          v-if="auth.logoutError.value"
+          class="px-3 pt-2 text-xs text-rose-300"
+          role="alert"
+        >
+          {{ auth.logoutError.value }}
+        </p>
       </div>
     </aside>
     <div class="tenant-content">

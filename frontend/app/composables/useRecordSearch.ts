@@ -12,6 +12,11 @@ export function useRecordSearch() {
   const loaded = useState("global-record-search-loaded", () => false);
   const loading = useState("global-record-search-loading", () => false);
 
+  function clearCache() {
+    loaded.value = false;
+    loading.value = false;
+  }
+
   async function searchRecords(
     query: string,
   ): Promise<RecordSearchResult[]> {
@@ -191,5 +196,5 @@ export function useRecordSearch() {
     return results.slice(0, 10);
   }
 
-  return { searchRecords };
+  return { searchRecords, clearCache };
 }
