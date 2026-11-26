@@ -372,6 +372,8 @@ export function useDormData() {
     try {
       const invitation = await api.request<ApiInvitationLookup>(
         `/room-invitations/${encodeURIComponent(code.trim())}`,
+        {},
+        { requiresAuth: false },
       );
       if (invitation.status !== "ACTIVE") {
         const messages: Record<RoomInvitation["status"], string> = {
