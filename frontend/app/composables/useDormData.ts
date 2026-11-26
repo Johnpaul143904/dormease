@@ -2,7 +2,6 @@ import type { Room, RoomInput } from "~/types/room";
 import type { Tenant, TenantInput } from "~/types/tenant";
 import type { RoomAssignment } from "~/types/room-assignment";
 import type { RoomInvitation } from "~/types/room-invitation";
-import type { AuthUser } from "~/types/auth";
 
 interface ApiRoom {
   id: number;
@@ -146,8 +145,8 @@ export function useDormData() {
     "current-tenant-id",
     () => null,
   );
-  const authUser = useState<AuthUser | null>("auth-user", () => null);
   const api = useApi();
+  const auth = useDormEaseAuth();
   const loading = useState("dorm-data-loading", () => false);
   const error = useState("dorm-data-error", () => "");
 
@@ -185,7 +184,7 @@ export function useDormData() {
         status: tenant.assignments.length ? "ACTIVE" : "PENDING",
       }));
       currentTenantId.value =
-        tenants.value.find((tenant) => tenant.email === authUser.value?.email)
+        tenants.value.find((tenant) => tenant.email === auth.user.value?.email)
           ?.id ?? null;
     } catch (caught) {
       error.value =

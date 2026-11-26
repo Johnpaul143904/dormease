@@ -19,17 +19,14 @@ export const useDormEaseAuth = () => {
   const role = useState<UserRole | null>("auth-role", () => null);
   const isAuthenticated = useState("is-authenticated", () => false);
   const logoutError = useState("auth-logout-error", () => "");
-  const clearDormDataCache = useDormData().clearCache;
-  const clearOperationsCache = useOperations().clearCache;
-  const clearRecordSearchCache = useRecordSearch().clearCache;
 
   function clearApplicationState() {
     user.value = null;
     role.value = null;
     isAuthenticated.value = false;
-    clearDormDataCache();
-    clearOperationsCache();
-    clearRecordSearchCache();
+    useDormData().clearCache();
+    useOperations().clearCache();
+    useRecordSearch().clearCache();
   }
 
   function applyProfile(response: AuthResponse) {
