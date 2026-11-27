@@ -1,13 +1,58 @@
 <script setup lang="ts">
+import { dashboardRouteForRole } from "~/types/auth";
+
 definePageMeta({ layout: "auth" });
 
 const route = useRoute();
-const authError =
+const clerkAuth = useAuth();
+const auth = useDormEaseAuth();
+const isRestoring = ref(false);
+const retryError = ref("");
+const authError = computed(() =>
   route.query.authError === "verify-email"
     ? "Verify your primary email address with Clerk, then sign in again."
     : route.query.authError === "session"
       ? "We couldn't verify your DormEase session. Please try again."
-      : "";
+      : "",
+);
+
+async function retryProfileRestoration() {
+  isRestoring.value = true;
+  retryError.value = "";
+  try {
+    const restored = await auth.restoreSession();
+    if (!restored || !auth.role.value) {
+      retryError.value =
+        "Your DormEase account is not linked to this Clerk session.";
+      return;
+    }
+    await navigateTo(dashboardRouteForRole(auth.role.value), {
+      replace: true,
+    });
+  } catch (error) {
+    retryError.value =
+      getErrorStatus(error) === 403
+        ? "Verify your primary email address with Clerk, then retry."
+        : "We couldn't restore your DormEase profile. You can retry or sign out.";
+  } finally {
+    isRestoring.value = false;
+  }
+}
+
+function getErrorStatus(error: unknown) {
+  if (typeof error !== "object" || error === null) return undefined;
+  if ("statusCode" in error && typeof error.statusCode === "number") {
+    return error.statusCode;
+  }
+  if ("status" in error && typeof error.status === "number") {
+    return error.status;
+  }
+  return undefined;
+}
+
+async function signOut() {
+  await auth.logout();
+}
 </script>
 
 <template>
@@ -81,13 +126,48 @@ const authError =
           {{ authError }}
         </div>
 
-        <SignIn
-          :path="route.path"
-          routing="path"
-          sign-up-url="/register"
-          force-redirect-url="/dashboard"
-          fallback-redirect-url="/dashboard"
-        />
+        <ClientOnly>
+          <div v-if="authError && clerkAuth.isSignedIn.value" class="space-y-4">
+            <p v-if="retryError" role="alert" class="text-sm text-red-600">
+              {{ retryError }}
+            </p>
+            <div class="flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                :disabled="isRestoring"
+                class="rounded-xl bg-brand-700 px-5 py-3 font-semibold text-white disabled:opacity-60"
+                @click="retryProfileRestoration"
+              >
+                {{ isRestoring ? "Retrying..." : "Retry profile restoration" }}
+              </button>
+              <button
+                type="button"
+                class="rounded-xl border border-slate-300 px-5 py-3 font-semibold text-slate-700"
+                @click="signOut"
+              >
+                Sign out
+              </button>
+            </div>
+            <p
+              v-if="auth.logoutError.value"
+              role="alert"
+              class="text-sm text-red-600"
+            >
+              {{ auth.logoutError.value }}
+            </p>
+          </div>
+          <SignIn
+            v-else
+            :path="route.path"
+            routing="path"
+            sign-up-url="/register"
+            force-redirect-url="/dashboard"
+            fallback-redirect-url="/dashboard"
+          />
+          <template #fallback>
+            <div class="min-h-[24rem]" aria-hidden="true" />
+          </template>
+        </ClientOnly>
       </div>
     </section>
   </main>

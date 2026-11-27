@@ -1,16 +1,5 @@
 import type { AuthResponse, RegistrationPayload, UserRole } from "~/types/auth";
 
-function getErrorStatus(error: unknown) {
-  if (typeof error !== "object" || error === null) return undefined;
-  if ("statusCode" in error && typeof error.statusCode === "number") {
-    return error.statusCode;
-  }
-  if ("status" in error && typeof error.status === "number") {
-    return error.status;
-  }
-  return undefined;
-}
-
 export const useDormEaseAuth = () => {
   const clerkAuth = useAuth();
   const clerkUser = useUser();
@@ -48,7 +37,7 @@ export const useDormEaseAuth = () => {
     });
   }
 
-  async function restoreSession(registration: RegistrationPayload = {}) {
+  async function restoreSession() {
     await waitForClerk();
     if (!clerkAuth.isSignedIn.value) {
       clearApplicationState();
@@ -56,14 +45,7 @@ export const useDormEaseAuth = () => {
     }
 
     try {
-      let response: AuthResponse;
-      try {
-        response = await authApi.profile();
-      } catch (error) {
-        if (getErrorStatus(error) !== 401) throw error;
-        await authApi.register(registration);
-        response = await authApi.profile();
-      }
+      let response: AuthResponse = await authApi.profile();
 
       const primaryEmail = clerkUser.user.value?.primaryEmailAddress;
       const verifiedEmail =
@@ -76,6 +58,22 @@ export const useDormEaseAuth = () => {
 
       applyProfile(response);
       return true;
+    } catch (error) {
+      clearApplicationState();
+      throw error;
+    }
+  }
+
+  async function provisionSession(registration: RegistrationPayload = {}) {
+    await waitForClerk();
+    if (!clerkAuth.isSignedIn.value) {
+      clearApplicationState();
+      return false;
+    }
+
+    try {
+      await authApi.register(registration);
+      return await restoreSession();
     } catch (error) {
       clearApplicationState();
       throw error;
@@ -107,6 +105,7 @@ export const useDormEaseAuth = () => {
     logoutError,
     applyProfile,
     restoreSession,
+    provisionSession,
     logout,
   };
 };

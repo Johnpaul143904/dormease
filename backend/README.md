@@ -52,6 +52,25 @@ deployed HTTPS frontend origin in production). Use the configured
 `ADMIN_INVITATION_CODE` only for authorized admin provisioning. Do not commit or
 share credentials.
 
+The Vercel `NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, Vercel server-only
+`NUXT_CLERK_SECRET_KEY`, and Render `CLERK_PUBLISHABLE_KEY` /
+`CLERK_SECRET_KEY` must all identify the same Clerk production instance (use
+live keys in production). A successful API session-token verification confirms
+the token belongs to the backend's configured instance; deployment environment
+values must still be checked in Vercel and Render when diagnosing
+production-only failures. Never expose the secret keys to browser code.
+
+If provisioning finds the same verified email on a user row linked to another
+Clerk ID, it intentionally does not replace that ID. Re-registering or matching
+the email is not account recovery. A designated administrator must verify
+control of the new Clerk identity and independently verify the claimant's
+ownership of the existing DormEase account using its established records. For
+a stale/deleted Clerk identity, require documented support approval and an
+audited, narrowly scoped update of only that user's `clerkUserId`, guarded by
+the previously stored ID and the uniqueness constraint. If ownership cannot be
+established independently of email, leave the link unchanged and escalate; do
+not modify roles, tenant relations, assignments, payments, or other records.
+
 Set `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and
 `CLOUDINARY_API_SECRET` in the backend environment for payment receipt uploads.
 Keep the API secret server-side; never configure Cloudinary credentials in the

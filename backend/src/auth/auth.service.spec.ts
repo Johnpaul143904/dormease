@@ -1,4 +1,8 @@
-import { BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { UserRole } from '../generated/prisma/enums';
@@ -38,8 +42,15 @@ describe('AuthService', () => {
   };
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
+    prisma.$transaction.mockImplementation(
+      async (callback: (transaction: typeof tx) => Promise<unknown>) =>
+        callback(tx),
+    );
     clerkIdentity.getVerifiedIdentity.mockResolvedValue(identity);
+    configService.get.mockReturnValue('valid-admin-invite');
+    tx.user.findUnique.mockResolvedValue(null);
+    tx.user.findMany.mockResolvedValue([]);
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
@@ -111,6 +122,106 @@ describe('AuthService', () => {
         }),
       }),
     );
+  });
+
+  it.each([
+    ['email/password', 'user_email_123', 'email@example.com'],
+    ['Google', 'user_google_123', 'google@example.com'],
+  ])(
+    'provisions a new %s account from the verified Clerk identity',
+    async (_provider, clerkUserId, email) => {
+      const verifiedIdentity = {
+        clerkUserId,
+        email,
+        fullName: 'New Tenant',
+      };
+      const created = {
+        id: 11,
+        fullName: verifiedIdentity.fullName,
+        email,
+        role: UserRole.TENANT,
+      };
+      clerkIdentity.getVerifiedIdentity.mockResolvedValue(verifiedIdentity);
+      tx.user.findUnique.mockResolvedValue(null);
+      tx.user.findMany.mockResolvedValue([]);
+      tx.user.create.mockResolvedValue(created);
+
+      await expect(service.provisionUser(clerkUserId, {})).resolves.toEqual({
+        user: created,
+      });
+      expect(clerkIdentity.getVerifiedIdentity).toHaveBeenCalledWith(
+        clerkUserId,
+      );
+      expect(tx.user.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ clerkUserId, email }),
+        }),
+      );
+    },
+  );
+
+  it('returns the existing account for a repeated request from the same Clerk identity', async () => {
+    const linked = {
+      id: 12,
+      fullName: 'Existing Tenant',
+      email: identity.email,
+      role: UserRole.TENANT,
+    };
+    tx.user.findUnique
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(linked);
+    tx.user.findMany.mockResolvedValue([]);
+    tx.user.create.mockResolvedValue(linked);
+
+    await expect(
+      service.provisionUser(identity.clerkUserId, {}),
+    ).resolves.toEqual({ user: linked });
+    await expect(
+      service.provisionUser(identity.clerkUserId, {}),
+    ).resolves.toEqual({ user: linked });
+    expect(tx.user.create).toHaveBeenCalledTimes(1);
+    expect(tx.user.update).not.toHaveBeenCalled();
+  });
+
+  it('restores a concurrent duplicate after the Clerk ID unique constraint wins', async () => {
+    const linked = {
+      id: 13,
+      fullName: 'Existing Tenant',
+      email: identity.email,
+      role: UserRole.TENANT,
+    };
+    tx.user.findUnique.mockResolvedValue(null);
+    tx.user.findMany.mockResolvedValue([]);
+    tx.user.create.mockRejectedValue({ code: 'P2002' });
+    prisma.user.findUnique.mockResolvedValue(linked);
+
+    await expect(
+      service.provisionUser(identity.clerkUserId, {}),
+    ).resolves.toEqual({ user: linked });
+    expect(prisma.user.findUnique).toHaveBeenCalledWith({
+      where: { clerkUserId: identity.clerkUserId },
+      select: expect.any(Object),
+    });
+  });
+
+  it('does not replace a stale Clerk identity based only on matching email', async () => {
+    tx.user.findUnique.mockResolvedValue(null);
+    tx.user.findMany.mockResolvedValue([
+      {
+        id: 14,
+        fullName: 'Existing Tenant',
+        email: identity.email,
+        role: UserRole.TENANT,
+        clerkUserId: 'user_old_clerk_identity',
+        tenant: { userId: 14 },
+      },
+    ]);
+
+    await expect(
+      service.provisionUser(identity.clerkUserId, {}),
+    ).rejects.toBeInstanceOf(ConflictException);
+    expect(tx.user.update).not.toHaveBeenCalled();
+    expect(tx.user.create).not.toHaveBeenCalled();
   });
 
   it('requires a valid invitation code before creating an admin account', async () => {

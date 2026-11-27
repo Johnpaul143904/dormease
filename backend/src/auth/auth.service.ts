@@ -98,6 +98,12 @@ export class AuthService {
       return { user };
     } catch (error) {
       if (this.isUniqueViolation(error)) {
+        const linkedUser = await this.prisma.user.findUnique({
+          where: { clerkUserId },
+          select: profileSelect,
+        });
+        if (linkedUser) return { user: linkedUser };
+
         throw new ConflictException(
           'This email or Clerk identity is already linked to a DormEase account',
         );

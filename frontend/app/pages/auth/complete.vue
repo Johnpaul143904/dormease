@@ -11,6 +11,7 @@ const auth = useDormEaseAuth();
 const isProvisioning = ref(true);
 const isCompleted = ref(false);
 const errorMessage = ref("");
+const recoveryRequired = ref(false);
 const dashboardPath = ref("");
 
 function getRegistrationChoice(): RegistrationPayload {
@@ -54,10 +55,11 @@ function getRegistrationChoice(): RegistrationPayload {
 async function completeRegistration() {
   isProvisioning.value = true;
   errorMessage.value = "";
+  recoveryRequired.value = false;
   isCompleted.value = false;
 
   try {
-    const restored = await auth.restoreSession(
+    const restored = await auth.provisionSession(
       getRegistrationChoice()
     );
 
@@ -76,13 +78,30 @@ async function completeRegistration() {
     isCompleted.value = true;
 
   } catch (error) {
-    errorMessage.value =
-      error instanceof Error
-        ? error.message
-        : "Unable to link your DormEase account.";
+    if (getErrorStatus(error) === 409) {
+      recoveryRequired.value = true;
+      errorMessage.value =
+        "A DormEase account is already linked to a different Clerk identity. For your security, it was not changed. Contact a DormEase administrator to verify ownership and request account recovery.";
+    } else {
+      errorMessage.value =
+        error instanceof Error
+          ? error.message
+          : "Unable to link your DormEase account.";
+    }
   } finally {
     isProvisioning.value = false;
   }
+}
+
+function getErrorStatus(error: unknown) {
+  if (typeof error !== "object" || error === null) return undefined;
+  if ("statusCode" in error && typeof error.statusCode === "number") {
+    return error.statusCode;
+  }
+  if ("status" in error && typeof error.status === "number") {
+    return error.status;
+  }
+  return undefined;
 }
 
 onMounted(() => {
@@ -169,13 +188,14 @@ onMounted(() => {
         </p>
 
         <button
+          v-if="!recoveryRequired"
           class="mt-6 font-semibold text-brand-600 hover:text-brand-700"
           @click="completeRegistration"
         >
           Try Again
         </button>
 
-        <div class="mt-4">
+        <div v-if="!recoveryRequired" class="mt-4">
           <NuxtLink
             to="/register"
             class="text-sm font-semibold text-slate-500 hover:text-slate-700"

@@ -51,6 +51,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
     );
   }
 
+  if (isLoginPage && to.query.authError) return;
+
   try {
     const restored = await auth.restoreSession();
     if (!restored || !auth.isAuthenticated.value || !auth.role.value) {

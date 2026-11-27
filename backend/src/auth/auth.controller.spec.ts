@@ -30,6 +30,19 @@ describe('AuthController', () => {
     );
   });
 
+  it('ignores a client-supplied Clerk ID and uses the verified request identity', async () => {
+    const request = { clerkUserId: 'user_verified_123' };
+    const dto = { clerkUserId: 'user_forged_456' } as RegisterDto;
+    authService.provisionUser.mockResolvedValue({ user: { id: 11 } });
+
+    await controller.register(request as never, dto);
+
+    expect(authService.provisionUser).toHaveBeenCalledWith(
+      'user_verified_123',
+      dto,
+    );
+  });
+
   it('does not provision without a Clerk session', () => {
     expect(() => controller.register({} as never, {})).toThrow(
       UnauthorizedException,
