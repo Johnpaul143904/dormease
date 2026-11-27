@@ -89,6 +89,28 @@ model User {
   passwordResetTokens        PasswordResetToken[]
 }
 
+model ClerkIdentity {
+  clerkUserId    String    @id
+  email          String?
+  fullName       String?
+  emailVerified  Boolean   @default(false)
+  clerkUpdatedAt DateTime?
+  lastEventAt    DateTime
+  deletedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model ClerkWebhookEvent {
+  eventId     String   @id
+  clerkUserId String
+  eventType   String
+  eventAt     DateTime
+  processedAt DateTime @default(now())
+
+  @@index([clerkUserId, eventAt])
+}
+
 model PasswordResetToken {
   id        Int       @id @default(autoincrement())
   userId    Int

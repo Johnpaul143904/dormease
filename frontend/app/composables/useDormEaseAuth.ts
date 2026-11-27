@@ -1,8 +1,11 @@
 import type { AuthResponse, RegistrationPayload, UserRole } from "~/types/auth";
 
 export const useDormEaseAuth = () => {
-  const clerkAuth = useAuth();
-  const clerkUser = useUser();
+  const nuxtApp = useNuxtApp();
+  const { clerkAuth, clerkUser } = nuxtApp.vueApp.runWithContext(() => ({
+    clerkAuth: useAuth(),
+    clerkUser: useUser(),
+  }));
   const authApi = useAuthApi();
   const user = useState<AuthResponse["user"] | null>("auth-user", () => null);
   const role = useState<UserRole | null>("auth-role", () => null);
@@ -13,9 +16,11 @@ export const useDormEaseAuth = () => {
     user.value = null;
     role.value = null;
     isAuthenticated.value = false;
-    useDormData().clearCache();
-    useOperations().clearCache();
-    useRecordSearch().clearCache();
+    nuxtApp.runWithContext(() => {
+      useDormData().clearCache();
+      useOperations().clearCache();
+      useRecordSearch().clearCache();
+    });
   }
 
   function applyProfile(response: AuthResponse) {

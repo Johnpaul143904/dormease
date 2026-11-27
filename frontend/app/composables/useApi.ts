@@ -1,6 +1,7 @@
 export const useApi = () => {
+  const nuxtApp = useNuxtApp();
   const config = useRuntimeConfig();
-  const clerkAuth = useAuth();
+  const clerkAuth = nuxtApp.vueApp.runWithContext(() => useAuth());
   const apiBase = config.public.apiBase.replace(/\/+$/, "");
   const fetcher: typeof $fetch = import.meta.server
     ? useRequestFetch()

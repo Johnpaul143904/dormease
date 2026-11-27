@@ -32,12 +32,20 @@ export class ClerkAuthGuard implements CanActivate {
     const clerkUserId = await this.clerkIdentityService.authenticateRequest(
       this.createBearerRequest(request),
     );
+    request.clerkUserId = clerkUserId;
+    const clerkIdentity = await this.prisma.clerkIdentity.findUnique({
+      where: { clerkUserId },
+      select: { deletedAt: true },
+    });
+    if (clerkIdentity?.deletedAt) {
+      throw new UnauthorizedException('Clerk account has been deleted');
+    }
+
     const user = await this.prisma.user.findUnique({
       where: { clerkUserId },
       select: { id: true, role: true },
     });
 
-    request.clerkUserId = clerkUserId;
     if (!user) {
       const allowsUnlinkedUser = this.reflector.getAllAndOverride<boolean>(
         ALLOW_UNLINKED_CLERK_USER_KEY,

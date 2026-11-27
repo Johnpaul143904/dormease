@@ -12,6 +12,7 @@ import { MaintenanceModule } from './maintenance/maintenance.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { RoomInvitationsModule } from './room-invitations/room-invitations.module';
+import { WebhooksModule } from './webhooks/webhooks.module';
 import { APP_GUARD } from '@nestjs/core';
 import { ClerkAuthGuard } from './auth/clerk-auth.guard';
 import { RolesGuard } from './auth/roles.guard';
@@ -31,6 +32,7 @@ import { RolesGuard } from './auth/roles.guard';
     NotificationsModule,
     DashboardModule,
     RoomInvitationsModule,
+    WebhooksModule,
   ],
   controllers: [AppController],
   providers: [

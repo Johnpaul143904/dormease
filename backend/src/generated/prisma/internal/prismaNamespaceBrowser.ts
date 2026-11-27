@@ -52,6 +52,8 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
+  ClerkIdentity: 'ClerkIdentity',
+  ClerkWebhookEvent: 'ClerkWebhookEvent',
   PasswordResetToken: 'PasswordResetToken',
   Room: 'Room',
   Tenant: 'Tenant',
@@ -94,6 +96,32 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const ClerkIdentityScalarFieldEnum = {
+  clerkUserId: 'clerkUserId',
+  email: 'email',
+  fullName: 'fullName',
+  emailVerified: 'emailVerified',
+  clerkUpdatedAt: 'clerkUpdatedAt',
+  lastEventAt: 'lastEventAt',
+  deletedAt: 'deletedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ClerkIdentityScalarFieldEnum = (typeof ClerkIdentityScalarFieldEnum)[keyof typeof ClerkIdentityScalarFieldEnum]
+
+
+export const ClerkWebhookEventScalarFieldEnum = {
+  eventId: 'eventId',
+  clerkUserId: 'clerkUserId',
+  eventType: 'eventType',
+  eventAt: 'eventAt',
+  processedAt: 'processedAt'
+} as const
+
+export type ClerkWebhookEventScalarFieldEnum = (typeof ClerkWebhookEventScalarFieldEnum)[keyof typeof ClerkWebhookEventScalarFieldEnum]
 
 
 export const PasswordResetTokenScalarFieldEnum = {

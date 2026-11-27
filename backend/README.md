@@ -45,12 +45,26 @@ not accept a client-supplied tenant ID.
 | Invitations | `GET/POST /room-invitations`, `POST /room-invitations/:id/revoke` | Accept/reject an invitation by code |
 
 Set `DATABASE_URL`, `CLERK_SECRET_KEY`, `CLERK_PUBLISHABLE_KEY`,
-`CLERK_AUTHORIZED_PARTIES`, `CORS_ORIGIN`, and `ADMIN_INVITATION_CODE` in the
-backend environment. `CLERK_AUTHORIZED_PARTIES` is a comma-separated list of
-allowed frontend origins (for example, `http://localhost:3000` locally and the
-deployed HTTPS frontend origin in production). Use the configured
-`ADMIN_INVITATION_CODE` only for authorized admin provisioning. Do not commit or
-share credentials.
+`CLERK_WEBHOOK_SIGNING_SECRET`, `CLERK_AUTHORIZED_PARTIES`, `CORS_ORIGIN`, and
+`ADMIN_INVITATION_CODE` in the backend environment.
+`CLERK_AUTHORIZED_PARTIES` is a comma-separated list of allowed frontend
+origins (for example, `http://localhost:3000` locally and the deployed HTTPS
+frontend origin in production). Use the configured `ADMIN_INVITATION_CODE`
+only for authorized admin provisioning. Do not commit or share credentials.
+
+The public webhook endpoint is `POST /api/webhooks/clerk`. Configure Clerk to
+send `user.created`, `user.updated`, and `user.deleted` events there. The
+backend verifies Svix signatures against the raw request body using the
+`CLERK_WEBHOOK_SIGNING_SECRET` issued for that Clerk endpoint. Webhook data is
+stored in separate `ClerkIdentity` and `ClerkWebhookEvent` tables; the webhook
+does not create or assign roles to `User` records. DormEase accounts are still
+provisioned only by the authenticated registration flow.
+
+The additive Clerk webhook migration creates only those two tables and an
+event index. It does not modify existing users or delete or alter related
+payments, assignments, maintenance requests, tenant data, or roles. Review and
+apply it through the normal migration process before deploying the webhook
+backend; this integration does not apply production migrations automatically.
 
 The Vercel `NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, Vercel server-only
 `NUXT_CLERK_SECRET_KEY`, and Render `CLERK_PUBLISHABLE_KEY` /

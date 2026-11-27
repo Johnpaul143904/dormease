@@ -724,10 +724,6 @@ export type EnumMaintenanceStatusFieldUpdateOperationsInput = {
   set?: $Enums.MaintenanceStatus
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type MaintenanceRequestCreateNestedOneWithoutStatusHistoryInput = {
   create?: Prisma.XOR<Prisma.MaintenanceRequestCreateWithoutStatusHistoryInput, Prisma.MaintenanceRequestUncheckedCreateWithoutStatusHistoryInput>
   connectOrCreate?: Prisma.MaintenanceRequestCreateOrConnectWithoutStatusHistoryInput

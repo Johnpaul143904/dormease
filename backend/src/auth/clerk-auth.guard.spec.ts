@@ -19,7 +19,10 @@ describe('ClerkAuthGuard', () => {
     url: '/api/rooms',
   };
   const clerkIdentity = { authenticateRequest: jest.fn() };
-  const prisma = { user: { findUnique: jest.fn() } };
+  const prisma = {
+    user: { findUnique: jest.fn() },
+    clerkIdentity: { findUnique: jest.fn() },
+  };
   const reflector = { getAllAndOverride: jest.fn() };
   let guard: ClerkAuthGuard;
   let context: {
@@ -39,6 +42,7 @@ describe('ClerkAuthGuard', () => {
       id: 42,
       role: UserRole.TENANT,
     });
+    prisma.clerkIdentity.findUnique.mockResolvedValue(null);
     context = {
       getHandler: jest.fn(),
       getClass: jest.fn(),
@@ -87,6 +91,17 @@ describe('ClerkAuthGuard', () => {
     await expect(guard.canActivate(context as never)).rejects.toBeInstanceOf(
       UnauthorizedException,
     );
+  });
+
+  it('rejects Clerk identities marked deleted by a verified webhook', async () => {
+    prisma.clerkIdentity.findUnique.mockResolvedValue({
+      deletedAt: new Date(),
+    });
+
+    await expect(guard.canActivate(context as never)).rejects.toBeInstanceOf(
+      UnauthorizedException,
+    );
+    expect(prisma.user.findUnique).not.toHaveBeenCalled();
   });
 
   it('allows an authenticated unlinked Clerk user only on the registration route', async () => {

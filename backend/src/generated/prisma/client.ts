@@ -45,6 +45,16 @@ export { Prisma }
  */
 export type User = Prisma.UserModel
 /**
+ * Model ClerkIdentity
+ *
+ */
+export type ClerkIdentity = Prisma.ClerkIdentityModel
+/**
+ * Model ClerkWebhookEvent
+ *
+ */
+export type ClerkWebhookEvent = Prisma.ClerkWebhookEventModel
+/**
  * Model PasswordResetToken
  * 
  */
