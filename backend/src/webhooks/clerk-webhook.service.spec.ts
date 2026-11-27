@@ -1,9 +1,11 @@
 import type { UserWebhookEvent, WebhookEvent } from '@clerk/backend/webhooks';
+import { InternalServerErrorException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ClerkWebhookService } from './clerk-webhook.service';
 
 describe('ClerkWebhookService', () => {
   const tx = {
+    $executeRaw: jest.fn(),
     $queryRaw: jest.fn(),
     clerkWebhookEvent: { create: jest.fn() },
     clerkIdentity: {
@@ -127,11 +129,14 @@ describe('ClerkWebhookService', () => {
       async (callback: (transaction: typeof tx) => Promise<unknown>) =>
         callback(tx),
     );
-    tx.$queryRaw.mockResolvedValue([]);
+    tx.$executeRaw.mockResolvedValue(1);
     tx.clerkWebhookEvent.create.mockResolvedValue({});
     tx.clerkIdentity.findUnique.mockResolvedValue(null);
     tx.clerkIdentity.upsert.mockResolvedValue({});
     service = new ClerkWebhookService(prisma as unknown as PrismaService);
+  });
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it.each([
@@ -165,8 +170,50 @@ describe('ClerkWebhookService', () => {
       expect(
         tx.clerkIdentity.upsert.mock.calls[0][0].create,
       ).not.toHaveProperty('role');
+      expect(tx.$executeRaw).toHaveBeenCalledTimes(1);
+      expect(tx.$queryRaw).not.toHaveBeenCalled();
+      expect(tx.$executeRaw.mock.invocationCallOrder[0]).toBeLessThan(
+        tx.clerkWebhookEvent.create.mock.invocationCallOrder[0],
+      );
     },
   );
+
+  it('normalizes second-based timestamps and accepts empty email_addresses', async () => {
+    const timestamp = 1_700_000_000;
+    const originalEvent = userEvent('user.created');
+    const event = {
+      ...originalEvent,
+      timestamp,
+      data: {
+        ...originalEvent.data,
+        primary_email_address_id: null,
+        email_addresses: [],
+        updated_at: timestamp + 2,
+      },
+    } as UserWebhookEvent;
+
+    await expect(
+      service.process(event, 'msg_empty_email_addresses'),
+    ).resolves.toEqual({ status: 'processed' });
+
+    expect(tx.clerkWebhookEvent.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          eventAt: new Date(timestamp * 1000),
+        }),
+      }),
+    );
+    expect(tx.clerkIdentity.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: expect.objectContaining({
+          email: null,
+          emailVerified: false,
+          clerkUpdatedAt: new Date((timestamp + 2) * 1000),
+          lastEventAt: new Date(timestamp * 1000),
+        }),
+      }),
+    );
+  });
 
   it('does not store an unverified primary email', async () => {
     const event = userEvent('user.created', { emailVerified: false });
@@ -287,5 +334,25 @@ describe('ClerkWebhookService', () => {
       status: 'ignored',
     });
     expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('logs only safe error codes and stack frames before returning a generic error', async () => {
+    const logger = jest
+      .spyOn(Logger.prototype, 'error')
+      .mockImplementation(() => undefined);
+    const databaseError = Object.assign(
+      new Error('Failure contains private@example.com'),
+      { code: 'P2010' },
+    );
+    tx.$executeRaw.mockRejectedValueOnce(databaseError);
+
+    await expect(
+      service.process(userEvent('user.created'), 'msg_database_error'),
+    ).rejects.toBeInstanceOf(InternalServerErrorException);
+
+    const logged = JSON.stringify(logger.mock.calls);
+    expect(logged).toContain('P2010');
+    expect(logged).toContain('clerk-webhook.service.spec.ts');
+    expect(logged).not.toContain('private@example.com');
   });
 });

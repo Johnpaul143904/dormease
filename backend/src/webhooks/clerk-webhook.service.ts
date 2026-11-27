@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import type { UserWebhookEvent, WebhookEvent } from '@clerk/backend/webhooks';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -23,6 +27,8 @@ type SyncResult =
 
 @Injectable()
 export class ClerkWebhookService {
+  private readonly logger = new Logger(ClerkWebhookService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   async process(event: WebhookEvent, eventId: string): Promise<SyncResult> {
@@ -34,19 +40,19 @@ export class ClerkWebhookService {
       return { status: 'ignored' };
     }
 
-    const eventAt = this.toDate(event.timestamp);
-    const clerkUserId = event.data.id;
-    if (!clerkUserId) {
-      throw new Error('Clerk user webhook did not include a user ID');
-    }
-
-    const snapshot =
-      event.type === 'user.deleted' ? null : this.toSnapshot(event.data);
-    const clerkUpdatedAt = snapshot?.clerkUpdatedAt ?? eventAt;
-
     try {
+      const eventAt = this.toDate(event.timestamp);
+      const clerkUserId = event.data.id;
+      if (!clerkUserId) {
+        throw new Error('Clerk user webhook did not include a user ID');
+      }
+
+      const snapshot =
+        event.type === 'user.deleted' ? null : this.toSnapshot(event.data);
+      const clerkUpdatedAt = snapshot?.clerkUpdatedAt ?? eventAt;
+
       return await this.prisma.$transaction(async (tx) => {
-        await tx.$queryRaw`
+        await tx.$executeRaw`
           SELECT pg_advisory_xact_lock(hashtextextended(${clerkUserId}, 0))
         `;
 
@@ -118,18 +124,30 @@ export class ClerkWebhookService {
       });
     } catch (error) {
       if (this.isUniqueViolation(error)) {
-        const recordedEvent = await this.prisma.clerkWebhookEvent.findUnique({
-          where: { eventId },
-          select: { eventId: true },
-        });
-        if (recordedEvent) return { status: 'duplicate' };
+        try {
+          const recordedEvent = await this.prisma.clerkWebhookEvent.findUnique({
+            where: { eventId },
+            select: { eventId: true },
+          });
+          if (recordedEvent) return { status: 'duplicate' };
+        } catch (lookupError) {
+          this.logProcessingError(lookupError);
+          throw new InternalServerErrorException(
+            'Clerk webhook processing failed',
+          );
+        }
       }
-      throw error;
+
+      this.logProcessingError(error);
+      throw new InternalServerErrorException('Clerk webhook processing failed');
     }
   }
 
   private toSnapshot(user: SyncedUserData): ClerkUserSnapshot {
-    const primaryEmail = user.email_addresses.find(
+    const emailAddresses = Array.isArray(user.email_addresses)
+      ? user.email_addresses
+      : [];
+    const primaryEmail = emailAddresses.find(
       (email) =>
         email.id === user.primary_email_address_id &&
         email.verification?.status === 'verified',
@@ -149,10 +167,17 @@ export class ClerkWebhookService {
   }
 
   private toDate(timestamp: number): Date {
-    if (!Number.isSafeInteger(timestamp)) {
+    if (!Number.isSafeInteger(timestamp) || timestamp <= 0) {
       throw new Error('Clerk webhook timestamp is invalid');
     }
-    const date = new Date(timestamp);
+
+    const milliseconds =
+      timestamp < 100_000_000_000 ? timestamp * 1000 : timestamp;
+    if (!Number.isSafeInteger(milliseconds)) {
+      throw new Error('Clerk webhook timestamp is invalid');
+    }
+
+    const date = new Date(milliseconds);
     if (Number.isNaN(date.getTime())) {
       throw new Error('Clerk webhook timestamp is invalid');
     }
@@ -180,5 +205,35 @@ export class ClerkWebhookService {
       'code' in error &&
       error.code === 'P2002'
     );
+  }
+
+  private logProcessingError(error: unknown): void {
+    const code = this.getSafeErrorCode(error);
+    const stack =
+      error instanceof Error
+        ? error.stack
+            ?.split('\n')
+            .slice(1)
+            .filter((line) => /^\s+at\s/.test(line))
+            .join('\n')
+        : undefined;
+
+    this.logger.error(
+      `Clerk webhook processing failed (code: ${code})`,
+      stack || undefined,
+    );
+  }
+
+  private getSafeErrorCode(error: unknown): string {
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      typeof error.code === 'string' &&
+      /^(?:P\d{4}|[0-9A-Z]{5})$/.test(error.code)
+    ) {
+      return error.code;
+    }
+    return 'unknown';
   }
 }
